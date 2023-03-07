@@ -1,0 +1,30 @@
+general {
+	colors = true
+	separator = ""
+}
+
+battery 0 {
+	format = "%percentage"
+}
+
+memory {
+	format = "%used "
+}
+
+disk "/" {
+	format = "%free "
+}
+
+cpu_usage {
+	format = "%usage "
+}
+
+time {
+	format = " %H:%M  %d/%m/%y"
+}
+
+order += "cpu_usage" 
+order += "memory"
+order += "disk /" 
+order += "battery 0"
+order += "time"
