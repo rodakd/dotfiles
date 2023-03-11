@@ -39,3 +39,14 @@ colors:
     end:
       foreground: "#6e6a86"
       background: "#1f1d2e"
+
+font:
+  normal:
+    family: Hack NFM
+    style: Regular
+  bold:
+    family: Hack NFM
+    style: Regular
+  italic:
+    family: Hack NFM
+    style: Regular

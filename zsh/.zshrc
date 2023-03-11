@@ -8,6 +8,9 @@ ZSH_THEME_GIT_PROMPT_DIRTY=""
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
 export EDITOR="nvim"
+export COMPOSE_PROFILES=nginx
+export NODE_CONFIG_ENV="local"
+export NODE_OPTIONS=--max_old_space_size=4096
 
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
@@ -25,8 +28,13 @@ alias logo="sudo pkill -u rodakd"
 alias nvconf="nvim ~/.config/nvim"
 alias xcolor="xcolor --selection clipboard"
 alias pc="sudo pacman -S"
+alias keyb="~/dotfiles/scripts/keyboard.sh"
+alias ivy="cd ~/projects/ivy"
+alias respect="cd ~/projects/respect"
+alias nv="nvim ."
 
 ALSA_CARD=Audio
+LIBGL_DRI3_DISABLE=1
 
 source /usr/share/fzf/key-bindings.zsh
 source /usr/share/fzf/completion.zsh
