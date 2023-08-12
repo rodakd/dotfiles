@@ -1,0 +1,15 @@
+#!/bin/bash
+
+alias zshrc="nvim ~/.zshrc"
+alias portcheck="sudo lsof -i -P | grep LISTEN | grep "
+alias tscw="tsc --watch"
+alias ta="tmux attach -t"
+alias tls="tmux ls"
+alias tk="tmux kill-session -t"
+alias tn="tmux new-session"
+alias kpods="kubectl get pods"
+alias so="source ~/.zshrc"
+alias lg="lazygit"
+alias ld="lazydocker"
+alias xclip="xclip -selection clipboard"
+alias xargs='xargs -i -P 12 '
