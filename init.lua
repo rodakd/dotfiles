@@ -48,24 +48,9 @@ lspconfig.lua_ls.setup {
 }
 
 local prettierFormat = { formatCommand = "prettier --stdin-filepath ${INPUT}", formatStdin = true }
-local styluaFormat = { formatCommand = "stylua --stdin-filepath ${INPUT}", formatStdin = true }
 
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
-    root_dir = lspconfig.util.root_pattern { ".git/", "." },
-    filetypes = {
-        "html",
-        "css",
-        "scss",
-        "json",
-        "yaml",
-        "lua",
-        "markdown",
-        "javascript",
-        "typescript",
-        "javascriptreact",
-        "typescriptreact",
-    },
     settings = {
         rootMarkers = { ".git/" },
         languages = {
@@ -79,7 +64,6 @@ lspconfig.efm.setup {
             typescript = { prettierFormat },
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
-            lua = { styluaFormat },
         }
     }
 }
@@ -237,12 +221,14 @@ vim.keymap.set("n", "<C-t>", function()
     vim.cmd("UndotreeFocus")
 end)
 
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+
     callback = function(ev)
         vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
         local opts = { buffer = ev.buf }
-        local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
         vim.api.nvim_clear_autocmds({ group = augroup, buffer = ev.buf })
 
         vim.api.nvim_create_autocmd("BufWritePre", {
