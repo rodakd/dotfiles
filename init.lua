@@ -1,11 +1,13 @@
 require("packer").startup(function(use)
     use("wbthomason/packer.nvim")
-    use("folke/tokyonight.nvim")
     use("neovim/nvim-lspconfig")
     use("nvim-treesitter/nvim-treesitter")
     use("nvim-treesitter/nvim-treesitter-context")
+    use("folke/tokyonight.nvim")
+    use("mbbill/undotree")
     use("nvim-lua/plenary.nvim")
     use("nvim-telescope/telescope.nvim")
+    use("nvim-tree/nvim-web-devicons")
     use("tpope/vim-commentary")
     use("tpope/vim-vinegar")
     use("hrsh7th/cmp-nvim-lsp")
@@ -13,17 +15,11 @@ require("packer").startup(function(use)
     use("hrsh7th/cmp-path")
     use("hrsh7th/cmp-cmdline")
     use("hrsh7th/nvim-cmp")
-    use("windwp/nvim-ts-autotag")
-    use("windwp/nvim-autopairs")
-    use("mbbill/undotree")
-    use("maxmellon/vim-jsx-pretty")
-    use("nvim-tree/nvim-web-devicons")
 end)
 
 local cmp = require("cmp")
 local treesitter_context = require("treesitter-context")
 local treesitter_configs = require("nvim-treesitter.configs")
-local nvim_autopairs = require("nvim-autopairs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
@@ -32,7 +28,6 @@ local nvim_web_devicons = require("nvim-web-devicons")
 
 treesitter_context.setup()
 nvim_web_devicons.setup()
-nvim_autopairs.setup({ disable_filetype = { "TelescopePrompt", "vim" } })
 lspconfig.clangd.setup {}
 lspconfig.tsserver.setup {}
 lspconfig.gopls.setup {}
@@ -47,7 +42,10 @@ lspconfig.lua_ls.setup {
     },
 }
 
-local prettierFormat = { formatCommand = "prettier --stdin-filepath ${INPUT}", formatStdin = true }
+local prettierFormat = {
+    formatCommand = 'prettierd "${INPUT}"',
+    formatStdin = true,
+}
 
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
@@ -69,7 +67,7 @@ lspconfig.efm.setup {
 }
 
 treesitter_configs.setup({
-    ensure_installed = { "c", "lua", "typescript", "javascript", "python", "go", "bash", "lua" },
+    ensure_installed = { "c", "typescript", "javascript", "python", "go", "bash", "lua" },
     sync_install = false,
     auto_install = true,
     highlight = {
@@ -168,7 +166,6 @@ vim.opt.smartindent = true
 vim.opt.autoindent = true
 
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
-vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.format()")
 vim.cmd("colorscheme tokyonight-night")
 vim.cmd("hi NormalNC ctermbg=NONE guibg=NONE")
 vim.cmd("hi Normal ctermbg=NONE guibg=NONE")
@@ -235,7 +232,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
             group = augroup,
             buffer = ev.buf,
             callback = function()
-                vim.lsp.buf.format()
+                vim.lsp.buf.format {
+                    filter = function(client) return client.name ~= "tsserver" end
+                }
             end,
         })
 
