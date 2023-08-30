@@ -47,6 +47,11 @@ local prettierFormat = {
     formatStdin = true,
 }
 
+local sqlFormatterFormat = {
+    formatCommand = 'sql-formatter --config ~/.sqlformatterrc',
+    formatStdin = true
+}
+
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
     settings = {
@@ -62,6 +67,7 @@ lspconfig.efm.setup {
             typescript = { prettierFormat },
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
+            sql = { sqlFormatterFormat },
         }
     }
 }
@@ -262,3 +268,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end, {})
     end,
 })
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] =
+    vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+        underline = false,
+    })
