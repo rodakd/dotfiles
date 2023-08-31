@@ -31,6 +31,8 @@ nvim_web_devicons.setup()
 lspconfig.clangd.setup {}
 lspconfig.tsserver.setup {}
 lspconfig.gopls.setup {}
+lspconfig.astro.setup {}
+lspconfig.tailwindcss.setup {}
 
 lspconfig.lua_ls.setup {
     settings = {
@@ -54,6 +56,19 @@ local sqlFormatterFormat = {
 
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
+    filetypes = {
+        "html",
+        "css",
+        "scss",
+        "json",
+        "yaml",
+        "markdown",
+        "javascript",
+        "typescript",
+        "javascriptreact",
+        "typescriptreact",
+        "sql"
+    },
     settings = {
         rootMarkers = { ".git/" },
         languages = {
