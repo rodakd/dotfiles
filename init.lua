@@ -186,18 +186,18 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
 
-vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
 vim.cmd("colorscheme tokyonight-night")
+vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
+vim.cmd('autocmd BufEnter * call system("tmux rename-window " . expand("%"))')
+vim.cmd('autocmd VimLeave * call system("tmux rename-window zsh")')
+vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("hi NormalNC ctermbg=NONE guibg=NONE")
 vim.cmd("hi Normal ctermbg=NONE guibg=NONE")
-vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("hi CursorLine guibg='#2A3454'")
 vim.cmd("hi LineNr guifg='#888888'")
 vim.cmd("hi CursorLineNr guifg='#87afff'")
 vim.cmd("hi TelescopeNormal cterm=NONE guibg=NONE")
 vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
-vim.cmd('autocmd BufEnter * call system("tmux rename-window " . expand("%"))')
-vim.cmd('autocmd VimLeave * call system("tmux rename-window zsh")')
 vim.cmd("nnoremap <C-i> :b# <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 
@@ -229,10 +229,6 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 vim.keymap.set("n", "<leader>Y", function()
     vim.cmd(':let @+ = expand("%")')
 end, {})
-
-vim.keymap.set("n", "<C-g>", function()
-    vim.cmd("G")
-end)
 
 vim.keymap.set("n", "<C-t>", function()
     vim.cmd("UndotreeToggle")
