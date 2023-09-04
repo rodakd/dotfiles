@@ -32,7 +32,7 @@ lspconfig.clangd.setup {}
 lspconfig.tsserver.setup {}
 lspconfig.gopls.setup {}
 lspconfig.astro.setup {}
-lspconfig.tailwindcss.setup {}
+-- lspconfig.tailwindcss.setup {}
 
 lspconfig.lua_ls.setup {
     settings = {
@@ -243,19 +243,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 
     callback = function(ev)
-        local formatGroup = vim.api.nvim_create_augroup("Format", { clear = false })
-        vim.api.nvim_clear_autocmds({ group = formatGroup, buffer = ev.buf })
-
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            group = formatGroup,
-            buffer = ev.buf,
-            callback = function()
-                vim.lsp.buf.format {
-                    filter = function(client) return client.name ~= "tsserver" end
-                }
-            end,
-        })
-
         vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
         local opts = { buffer = ev.buf }
         vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
@@ -275,11 +262,18 @@ vim.api.nvim_create_autocmd("LspAttach", {
             telescope_builtin.diagnostics({
                 severity = "error",
             })
-        end, {})
+        end, opts)
 
         vim.keymap.set("n", "<C-m>", function()
             vim.diagnostic.goto_next({ float = false })
-        end, {})
+        end, opts)
+
+        vim.keymap.set('n', '<space>w', function()
+            vim.lsp.buf.format {
+                filter = function(client) return client.name ~= "tsserver" end
+            }
+            vim.cmd.w()
+        end, opts)
     end,
 })
 
