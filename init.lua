@@ -239,18 +239,15 @@ vim.keymap.set("n", "<C-t>", function()
     vim.cmd("UndotreeFocus")
 end)
 
-local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 
     callback = function(ev)
-        vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-        local opts = { buffer = ev.buf }
-        vim.api.nvim_clear_autocmds({ group = augroup, buffer = ev.buf })
+        local formatGroup = vim.api.nvim_create_augroup("Format", { clear = false })
+        vim.api.nvim_clear_autocmds({ group = formatGroup, buffer = ev.buf })
 
         vim.api.nvim_create_autocmd("BufWritePre", {
-            group = augroup,
+            group = formatGroup,
             buffer = ev.buf,
             callback = function()
                 vim.lsp.buf.format {
@@ -259,6 +256,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
             end,
         })
 
+        vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+        local opts = { buffer = ev.buf }
         vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
         vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
         vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
