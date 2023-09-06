@@ -10,6 +10,7 @@ require("packer").startup(function(use)
     use("nvim-tree/nvim-web-devicons")
     use("tpope/vim-commentary")
     use("tpope/vim-vinegar")
+    use("tpope/vim-fugitive")
     use("hrsh7th/cmp-nvim-lsp")
     use("hrsh7th/cmp-buffer")
     use("hrsh7th/cmp-path")
@@ -186,7 +187,7 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
 
-vim.cmd("colorscheme tokyonight-night")
+vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
 vim.cmd('autocmd BufEnter * call system("tmux rename-window " . expand("%"))')
 vim.cmd('autocmd VimLeave * call system("tmux rename-window zsh")')
@@ -261,7 +262,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end, opts)
 
         vim.keymap.set("n", "<C-m>", function()
-            vim.diagnostic.goto_next({ float = false })
+            vim.diagnostic.goto_next({ float = false, severity = "error" })
         end, opts)
 
         vim.keymap.set('n', '<space>w', function()
