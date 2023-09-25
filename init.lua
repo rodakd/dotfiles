@@ -16,6 +16,7 @@ require("packer").startup(function(use)
     use("hrsh7th/cmp-path")
     use("hrsh7th/cmp-cmdline")
     use("hrsh7th/nvim-cmp")
+    use("ahmedkhalf/project.nvim")
 end)
 
 local cmp = require("cmp")
@@ -26,6 +27,7 @@ local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
+local project = require("project_nvim").setup {}
 
 treesitter_context.setup()
 nvim_web_devicons.setup()
