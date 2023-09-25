@@ -186,6 +186,7 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
+vim.opt.autoread = true
 
 vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
