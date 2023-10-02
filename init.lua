@@ -1,23 +1,35 @@
-require("packer").startup(function(use)
-    use("wbthomason/packer.nvim")
-    use("neovim/nvim-lspconfig")
-    use("nvim-treesitter/nvim-treesitter")
-    use("nvim-treesitter/nvim-treesitter-context")
-    use("folke/tokyonight.nvim")
-    use("mbbill/undotree")
-    use("nvim-lua/plenary.nvim")
-    use("nvim-telescope/telescope.nvim")
-    use("nvim-tree/nvim-web-devicons")
-    use("tpope/vim-commentary")
-    use("tpope/vim-vinegar")
-    use("tpope/vim-fugitive")
-    use("hrsh7th/cmp-nvim-lsp")
-    use("hrsh7th/cmp-buffer")
-    use("hrsh7th/cmp-path")
-    use("hrsh7th/cmp-cmdline")
-    use("hrsh7th/nvim-cmp")
-    use("ahmedkhalf/project.nvim")
-end)
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable",
+        lazypath,
+    })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require("lazy").setup({
+    "neovim/nvim-lspconfig",
+    "nvim-treesitter/nvim-treesitter",
+    "nvim-treesitter/nvim-treesitter-context",
+    "folke/tokyonight.nvim",
+    "mbbill/undotree",
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+    "nvim-tree/nvim-web-devicons",
+    "tpope/vim-commentary",
+    "tpope/vim-vinegar",
+    "tpope/vim-fugitive",
+    "hrsh7th/cmp-nvim-lsp",
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-path",
+    "hrsh7th/cmp-cmdline",
+    "hrsh7th/nvim-cmp",
+    "ahmedkhalf/project.nvim",
+})
 
 local cmp = require("cmp")
 local treesitter_context = require("treesitter-context")
@@ -272,7 +284,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.lsp.buf.format {
                 filter = function(client) return client.name ~= "tsserver" end
             }
-            vim.cmd.w()
+            vim.cmd.wall()
         end, opts)
     end,
 })
