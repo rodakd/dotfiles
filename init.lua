@@ -16,13 +16,11 @@ require("lazy").setup({
     "nvim-treesitter/nvim-treesitter",
     "nvim-treesitter/nvim-treesitter-context",
     "folke/tokyonight.nvim",
-    "mbbill/undotree",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
     "tpope/vim-commentary",
     "tpope/vim-vinegar",
-    "tpope/vim-fugitive",
     "hrsh7th/cmp-nvim-lsp",
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-path",
@@ -46,8 +44,6 @@ nvim_web_devicons.setup()
 lspconfig.clangd.setup {}
 lspconfig.tsserver.setup {}
 lspconfig.gopls.setup {}
-lspconfig.astro.setup {}
--- lspconfig.tailwindcss.setup {}
 
 lspconfig.lua_ls.setup {
     settings = {
@@ -105,7 +101,6 @@ lspconfig.efm.setup {
 local MAX_TS_FILE_SIZE = 150 * 1024
 
 treesitter_configs.setup({
-    ensure_installed = { "c", "typescript", "javascript", "python", "go", "bash", "lua" },
     sync_install = false,
     auto_install = true,
     highlight = {
@@ -227,19 +222,6 @@ vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
 vim.cmd("nnoremap <C-i> :b# <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 
-vim.cmd([[
-if has("persistent_undo")
-    let target_path = expand('~/.undodir')
-
-    if !isdirectory(target_path)
-        call mkdir(target_path, "p", 0700)
-    endif
-
-    let &undodir=target_path
-    set undofile
-endif
-]])
-
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 vim.keymap.set("n", "<C-p>", telescope_builtin.git_files, {})
 vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
@@ -249,17 +231,10 @@ vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 vim.keymap.set("n", "<leader>Y", function()
     vim.cmd(':let @+ = expand("%")')
 end, {})
-
-vim.keymap.set("n", "<C-t>", function()
-    vim.cmd("UndotreeToggle")
-    vim.cmd("UndotreeFocus")
-end)
 
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -278,12 +253,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         vim.keymap.set({ "n", "v" }, "L", function()
             vim.diagnostic.open_float(0, { scope = "line" })
-        end, opts)
-
-        vim.keymap.set("n", "<C-b>", function()
-            telescope_builtin.diagnostics({
-                severity = "error",
-            })
         end, opts)
 
         vim.keymap.set("n", "<C-m>", function()

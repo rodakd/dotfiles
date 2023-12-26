@@ -31,25 +31,26 @@ background = "0x1a1b26"
 foreground = "0xc0caf5"
 
 [font]
-size = 15.0
+size = 12
 
 [font.bold]
-family = "JetBrainsMono Nerd Font"
+family = "JetBrains Mono NL Nerd Font"
 style = "Bold"
 
 [font.bold_italic]
-family = "JetBrainsMono Nerd Font"
+family = "JetBrains Mono NL Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "JetBrainsMono Nerd Font"
+family = "JetBrains Mono NL Nerd Font"
 style = "Regular"
 
 [font.normal]
-family = "JetBrainsMono Nerd Font"
+family = "JetBrains Mono NL Nerd Font"
 style = "Regular"
 
 [font.offset]
+x = 0
 y = 2
 
 [window]
