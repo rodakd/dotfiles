@@ -31,22 +31,22 @@ background = "0x1a1b26"
 foreground = "0xc0caf5"
 
 [font]
-size = 12
+size = 18
 
 [font.bold]
-family = "JetBrains Mono NL Nerd Font"
+family = "Inconsolata Nerd Font"
 style = "Bold"
 
 [font.bold_italic]
-family = "JetBrains Mono NL Nerd Font"
+family = "Inconsolata Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "JetBrains Mono NL Nerd Font"
+family = "Inconsolata Nerd Font"
 style = "Regular"
 
 [font.normal]
-family = "JetBrains Mono NL Nerd Font"
+family = "Inconsolata Nerd Font"
 style = "Regular"
 
 [font.offset]
