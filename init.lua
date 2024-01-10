@@ -31,7 +31,12 @@ require("lazy").setup({
     "ahmedkhalf/project.nvim",
     "pmizio/typescript-tools.nvim",
     "L3MON4D3/LuaSnip",
-    "saadparwaiz1/cmp_luasnip"
+    "saadparwaiz1/cmp_luasnip",
+    {
+        'mrcjkb/rustaceanvim',
+        version = '^3',
+        ft = { 'rust' },
+    }
 })
 
 local cmp = require("cmp")
@@ -45,6 +50,11 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local project = require("project_nvim")
 local typescript_tools = require("typescript-tools")
 local luasnip = require('luasnip')
+
+local cmp_window = cmp.config.window.bordered({
+    winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
+    scrollbar = false,
+})
 
 cmp.setup({
     snippet = {
@@ -81,15 +91,8 @@ cmp.setup({
     }),
 
     window = {
-        completion = cmp.config.window.bordered({
-            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-            scrollbar = false,
-        }),
-
-        documentation = cmp.config.window.bordered({
-            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-            scrollbar = false,
-        }),
+        completion = cmp_window,
+        documentation = cmp_window
     },
 
     sources = {
@@ -121,6 +124,10 @@ project.setup()
 treesitter_context.setup()
 nvim_web_devicons.setup()
 
+typescript_tools.setup {
+    capabilities = capabilities
+}
+
 lspconfig.clangd.setup {
     capabilities = capabilities
 }
@@ -138,10 +145,6 @@ lspconfig.cssls.setup {
 }
 
 lspconfig.html.setup {
-    capabilities = capabilities
-}
-
-typescript_tools.setup {
     capabilities = capabilities
 }
 
