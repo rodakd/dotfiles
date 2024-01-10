@@ -1,4 +1,5 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+
 if not vim.loop.fs_stat(lazypath) then
     vim.fn.system({
         "git",
@@ -9,6 +10,7 @@ if not vim.loop.fs_stat(lazypath) then
         lazypath,
     })
 end
+
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
@@ -27,6 +29,9 @@ require("lazy").setup({
     "hrsh7th/cmp-cmdline",
     "hrsh7th/nvim-cmp",
     "ahmedkhalf/project.nvim",
+    "pmizio/typescript-tools.nvim",
+    "L3MON4D3/LuaSnip",
+    "saadparwaiz1/cmp_luasnip"
 })
 
 local cmp = require("cmp")
@@ -37,13 +42,108 @@ local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
-local project = require("project_nvim").setup {}
+local project = require("project_nvim")
+local typescript_tools = require("typescript-tools")
+local luasnip = require('luasnip')
 
+cmp.setup({
+    snippet = {
+        expand = function(args)
+            luasnip.lsp_expand(args.body)
+        end,
+    },
+
+    mapping = cmp.mapping.preset.insert({
+        ["<C-u>"] = cmp.mapping.scroll_docs(-4),
+        ["<C-d>"] = cmp.mapping.scroll_docs(4),
+        ["<C-Space>"] = cmp.mapping.complete(),
+
+        ["<CR>"] = cmp.mapping.confirm({
+            behavior = cmp.ConfirmBehavior.Replace,
+            select = true,
+        }),
+
+        ["<Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_next_item()
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
+
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_prev_item()
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
+    }),
+
+    window = {
+        completion = cmp.config.window.bordered({
+            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
+            scrollbar = false,
+        }),
+
+        documentation = cmp.config.window.bordered({
+            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
+            scrollbar = false,
+        }),
+    },
+
+    sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+    },
+})
+
+cmp.setup.cmdline({ "/", "?" }, {
+    mapping = cmp.mapping.preset.cmdline(),
+
+    sources = {
+        { name = "buffer" },
+    },
+})
+
+cmp.setup.cmdline(":", {
+    mapping = cmp.mapping.preset.cmdline(),
+
+    sources = cmp.config.sources({
+        { name = "path" },
+    }, {
+        { name = "cmdline" },
+    }),
+})
+
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+project.setup()
 treesitter_context.setup()
 nvim_web_devicons.setup()
-lspconfig.clangd.setup {}
-lspconfig.tsserver.setup {}
-lspconfig.gopls.setup {}
+
+lspconfig.clangd.setup {
+    capabilities = capabilities
+}
+
+lspconfig.gopls.setup {
+    capabilities = capabilities
+}
+
+lspconfig.jsonls.setup {
+    capabilities = capabilities
+}
+
+lspconfig.cssls.setup {
+    capabilities = capabilities
+}
+
+lspconfig.html.setup {
+    capabilities = capabilities
+}
+
+typescript_tools.setup {
+    capabilities = capabilities
+}
 
 lspconfig.lua_ls.setup {
     settings = {
@@ -53,6 +153,8 @@ lspconfig.lua_ls.setup {
             },
         },
     },
+
+    capabilities = capabilities
 }
 
 local prettierFormat = {
@@ -67,6 +169,7 @@ local sqlFormatterFormat = {
 
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
+
     filetypes = {
         "html",
         "css",
@@ -80,8 +183,10 @@ lspconfig.efm.setup {
         "typescriptreact",
         "sql"
     },
+
     settings = {
         rootMarkers = { ".git/" },
+
         languages = {
             html = { prettierFormat },
             css = { prettierFormat },
@@ -95,7 +200,9 @@ lspconfig.efm.setup {
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
         }
-    }
+    },
+
+    capabilities = capabilities
 }
 
 local MAX_TS_FILE_SIZE = 150 * 1024
@@ -103,80 +210,41 @@ local MAX_TS_FILE_SIZE = 150 * 1024
 treesitter_configs.setup({
     sync_install = false,
     auto_install = true,
+
     highlight = {
         enable = true,
         additional_vim_regex_highlighting = false,
         use_languagetree = false,
+
         disable = function(_, bufnr)
             local buf_name = vim.api.nvim_buf_get_name(bufnr)
             local file_size = vim.api.nvim_call_function("getfsize", { buf_name })
             return file_size > MAX_TS_FILE_SIZE
         end,
     },
+
     context_commentstring = {
         enable = true,
     },
 })
 
-cmp.setup({
-    mapping = cmp.mapping.preset.insert({
-        ["<C-u>"] = cmp.mapping.scroll_docs(-4),
-        ["<C-d>"] = cmp.mapping.scroll_docs(4),
-        ["<C-Space>"] = cmp.mapping.complete(),
-        ["<CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-        }),
-        ["<Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_next_item()
-            else
-                fallback()
-            end
-        end, { "i", "s" }),
-        ["<S-Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            else
-                fallback()
-            end
-        end, { "i", "s" }),
-    }),
-    sources = {
-        { name = "nvim_lsp" },
-    },
-})
-
-cmp.setup.cmdline({ "/", "?" }, {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = {
-        { name = "buffer" },
-    },
-})
-
-cmp.setup.cmdline(":", {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = cmp.config.sources({
-        { name = "path" },
-    }, {
-        { name = "cmdline" },
-    }),
-})
-
 telescope.setup({
     defaults = {
         layout_strategy = "vertical",
+
         layout_config = {
             height = 0.99,
             preview_cutoff = 10,
             prompt_position = "bottom",
             width = 0.99,
         },
+
         mappings = {
             i = {
                 ["<esc>"] = telescope_actions.close,
             },
         },
+
         preview = {
             filesize_limit = 0.3,
             highlight_limit = MAX_TS_FILE_SIZE
@@ -221,6 +289,7 @@ vim.cmd("hi TelescopeNormal cterm=NONE guibg=NONE")
 vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
 vim.cmd("nnoremap <C-i> :b# <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
+vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
 
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 vim.keymap.set("n", "<C-p>", telescope_builtin.git_files, {})
@@ -263,6 +332,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.lsp.buf.format {
                 filter = function(client) return client.name ~= "tsserver" end
             }
+
             vim.cmd.wall()
         end, opts)
     end,

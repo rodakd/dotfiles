@@ -51,7 +51,7 @@ style = "Regular"
 
 [font.offset]
 x = 0
-y = 2
+y = 5
 
 [window]
 decorations = "None"
