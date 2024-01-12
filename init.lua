@@ -333,7 +333,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         vim.keymap.set('n', '<space>w', function()
             vim.lsp.buf.format {
-                filter = function(client) return client.name ~= "tsserver" end
+                filter = function(client) return client.name ~= "typescript-tools" end
             }
 
             vim.cmd.wall()
