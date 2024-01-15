@@ -137,15 +137,27 @@ lspconfig.gopls.setup {
 }
 
 lspconfig.jsonls.setup {
-    capabilities = capabilities
+    capabilities = capabilities,
+
+    init_options = {
+        provideFormatter = false
+    }
 }
 
 lspconfig.cssls.setup {
-    capabilities = capabilities
+    capabilities = capabilities,
+
+    init_options = {
+        provideFormatter = false
+    }
 }
 
 lspconfig.html.setup {
-    capabilities = capabilities
+    capabilities = capabilities,
+
+    init_options = {
+        provideFormatter = false
+    }
 }
 
 lspconfig.lua_ls.setup {
@@ -280,7 +292,7 @@ vim.opt.autoread = true
 
 vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy")
-vim.cmd('autocmd BufEnter * call system("tmux rename-window " . expand("%"))')
+vim.cmd('autocmd BufEnter * call system("tmux rename-window -t 1 " . expand("%"))')
 vim.cmd('autocmd VimLeave * call system("tmux rename-window zsh")')
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("hi NormalNC ctermbg=NONE guibg=NONE")
@@ -337,6 +349,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
             }
 
             vim.cmd.wall()
+            vim.diagnostic.enable(ev.buf)
         end, opts)
     end,
 })
