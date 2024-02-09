@@ -154,10 +154,6 @@ lspconfig.cssls.setup {
 
 lspconfig.html.setup {
     capabilities = capabilities,
-
-    init_options = {
-        provideFormatter = false
-    }
 }
 
 lspconfig.lua_ls.setup {
@@ -302,7 +298,7 @@ vim.cmd("hi LineNr guifg='#888888'")
 vim.cmd("hi CursorLineNr guifg='#87afff'")
 vim.cmd("hi TelescopeNormal cterm=NONE guibg=NONE")
 vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
-vim.cmd("nnoremap <C-i> :b# <CR>")
+vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
 
@@ -317,7 +313,7 @@ vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 
 vim.keymap.set("n", "<leader>Y", function()
-    vim.cmd(':let @+ = expand("%")')
+    vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
 vim.api.nvim_create_autocmd("LspAttach", {
