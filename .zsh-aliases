@@ -12,4 +12,4 @@ alias so="source ~/.zshrc"
 alias lg="lazygit"
 alias ld="lazydocker"
 alias xclip="xclip -selection clipboard"
-alias xargs='xargs -i -P 12 '
+# alias xargs='xargs -i -P 12 '

@@ -323,6 +323,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
         local opts = { buffer = ev.buf }
         vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
+        vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
         vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
         vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
         vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
