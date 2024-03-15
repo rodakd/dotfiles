@@ -312,6 +312,13 @@ vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 
+-- ultimate go keymap
+vim.keymap.set(
+    "n",
+    "<leader>ee",
+    "oif err != nil {<CR>}<Esc>Oreturn err<Esc>"
+)
+
 vim.keymap.set("n", "<leader>Y", function()
     vim.cmd(':let @+ = expand("%:p")')
 end, {})
