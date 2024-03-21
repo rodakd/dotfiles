@@ -46,6 +46,7 @@ local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
+local configs = require("lspconfig/configs")
 local nvim_web_devicons = require("nvim-web-devicons")
 local project = require("project_nvim")
 local typescript_tools = require("typescript-tools")
@@ -166,6 +167,22 @@ lspconfig.lua_ls.setup {
     },
 
     capabilities = capabilities
+}
+
+if not configs.golangcilsp then
+    configs.golangcilsp = {
+        default_config = {
+            cmd = { 'golangci-lint-langserver' },
+            root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
+            init_options = {
+                command = { "golangci-lint", "run", "--out-format", "json", "--issues-exit-code=1" },
+            }
+        },
+    }
+end
+
+lspconfig.golangci_lint_ls.setup {
+    filetypes = { 'go', 'gomod' }
 }
 
 local prettierFormat = {
@@ -302,6 +319,7 @@ vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
 
+vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 vim.keymap.set("n", "<C-p>", telescope_builtin.git_files, {})
 vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
@@ -343,8 +361,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.diagnostic.open_float(0, { scope = "line" })
         end, opts)
 
-        vim.keymap.set("n", "<C-m>", function()
+        vim.keymap.set("n", "<C-e>", function()
             vim.diagnostic.goto_next({ float = false, severity = "error" })
+        end, opts)
+
+        vim.keymap.set("n", "<C-w>", function()
+            vim.diagnostic.goto_next({ float = false, severity = "warn" })
         end, opts)
 
         vim.keymap.set('n', '<space>w', function()
