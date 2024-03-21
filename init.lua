@@ -169,20 +169,13 @@ lspconfig.lua_ls.setup {
     capabilities = capabilities
 }
 
-if not configs.golangcilsp then
-    configs.golangcilsp = {
-        default_config = {
-            cmd = { 'golangci-lint-langserver' },
-            root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
-            init_options = {
-                command = { "golangci-lint", "run", "--out-format", "json", "--issues-exit-code=1" },
-            }
-        },
-    }
-end
-
 lspconfig.golangci_lint_ls.setup {
-    filetypes = { 'go', 'gomod' }
+    filetypes = { 'go', 'gomod' },
+    cmd = { 'golangci-lint-langserver', '--severity', 'err', '--debug' },
+    root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
+    init_options = {
+        command = { 'golangci-lint', 'run', '--out-format', 'json' },
+    }
 }
 
 local prettierFormat = {
@@ -361,12 +354,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.diagnostic.open_float(0, { scope = "line" })
         end, opts)
 
-        vim.keymap.set("n", "<C-e>", function()
+        vim.keymap.set("n", "<C-m>", function()
             vim.diagnostic.goto_next({ float = false, severity = "error" })
-        end, opts)
-
-        vim.keymap.set("n", "<C-w>", function()
-            vim.diagnostic.goto_next({ float = false, severity = "warn" })
         end, opts)
 
         vim.keymap.set('n', '<space>w', function()
