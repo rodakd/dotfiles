@@ -327,7 +327,7 @@ vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set(
     "n",
     "<leader>ee",
-    "oif err != nil {<CR>}<Esc>Oreturn err<Esc>"
+    "o<Enter>if err != nil {<CR>}<Esc>Oreturn err<Esc>"
 )
 
 vim.keymap.set("n", "<leader>Y", function()
