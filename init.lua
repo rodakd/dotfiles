@@ -22,16 +22,15 @@ require("lazy").setup({
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
     "tpope/vim-commentary",
-    "tpope/vim-vinegar",
     "hrsh7th/cmp-nvim-lsp",
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-path",
     "hrsh7th/cmp-cmdline",
     "hrsh7th/nvim-cmp",
-    "ahmedkhalf/project.nvim",
     "pmizio/typescript-tools.nvim",
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
+    "stevearc/oil.nvim",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -46,11 +45,16 @@ local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
-local configs = require("lspconfig/configs")
 local nvim_web_devicons = require("nvim-web-devicons")
-local project = require("project_nvim")
 local typescript_tools = require("typescript-tools")
 local luasnip = require('luasnip')
+local oil = require("oil")
+
+oil.setup({
+    keymaps = {
+        ["<C-p>"] = false,
+    },
+})
 
 local cmp_window = cmp.config.window.bordered({
     winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
@@ -121,7 +125,6 @@ cmp.setup.cmdline(":", {
 })
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
-project.setup()
 treesitter_context.setup()
 nvim_web_devicons.setup()
 
@@ -274,8 +277,8 @@ telescope.setup({
 })
 
 vim.g.mapleader = " "
-vim.g.netrw_bufsettings = "noma nomod nu nobl nowrap ro"
-vim.g.netrw_keepdir = 0
+-- vim.g.netrw_bufsettings = "noma nomod nu nobl nowrap ro"
+-- vim.g.netrw_keepdir = 0
 vim.o.ruler = false
 vim.o.laststatus = 0
 vim.opt.signcolumn = "no"
@@ -308,6 +311,8 @@ vim.cmd("hi LineNr guifg='#888888'")
 vim.cmd("hi CursorLineNr guifg='#87afff'")
 vim.cmd("hi TelescopeNormal cterm=NONE guibg=NONE")
 vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
+vim.cmd("hi TelescopePromptBorder cterm=NONE guibg=NONE guifg='#87afff'")
+vim.cmd("hi TelescopePromptTitle cterm=NONE guibg=NONE guifg='#87afff'")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
@@ -322,8 +327,8 @@ vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
--- ultimate go keymap
 vim.keymap.set(
     "n",
     "<leader>ee",
