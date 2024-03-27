@@ -54,6 +54,12 @@ oil.setup({
     keymaps = {
         ["<C-p>"] = false,
     },
+
+    view_options = {
+        show_hidden = true,
+    },
+
+    skip_confirm_for_simple_edits = true,
 })
 
 local cmp_window = cmp.config.window.bordered({
@@ -277,8 +283,6 @@ telescope.setup({
 })
 
 vim.g.mapleader = " "
--- vim.g.netrw_bufsettings = "noma nomod nu nobl nowrap ro"
--- vim.g.netrw_keepdir = 0
 vim.o.ruler = false
 vim.o.laststatus = 0
 vim.opt.signcolumn = "no"
