@@ -53,6 +53,7 @@ local oil = require("oil")
 oil.setup({
     keymaps = {
         ["<C-p>"] = false,
+        ["<C-s>"] = false,
     },
 
     view_options = {
