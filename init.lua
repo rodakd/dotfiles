@@ -16,7 +16,6 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     "neovim/nvim-lspconfig",
     "nvim-treesitter/nvim-treesitter",
-    "nvim-treesitter/nvim-treesitter-context",
     "folke/tokyonight.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
@@ -31,6 +30,8 @@ require("lazy").setup({
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
+    "tpope/vim-surround",
+    "tpope/vim-repeat",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -39,7 +40,6 @@ require("lazy").setup({
 })
 
 local cmp = require("cmp")
-local treesitter_context = require("treesitter-context")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
@@ -132,7 +132,6 @@ cmp.setup.cmdline(":", {
 })
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
-treesitter_context.setup()
 nvim_web_devicons.setup()
 
 typescript_tools.setup {
@@ -252,10 +251,6 @@ treesitter_configs.setup({
             local file_size = vim.api.nvim_call_function("getfsize", { buf_name })
             return file_size > MAX_TS_FILE_SIZE
         end,
-    },
-
-    context_commentstring = {
-        enable = true,
     },
 })
 
@@ -400,4 +395,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 vim.lsp.handlers["textDocument/publishDiagnostics"] =
     vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
         underline = false,
+
+        signs = function(_, bufnr)
+            return vim.b[bufnr].show_signs == false
+        end,
     })

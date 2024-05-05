@@ -1,6 +1,6 @@
 {
     "tabWidth": 4,
-    "dialect": "postgresql",
-    "language": "postgresql",
+    "dialect": "mysql",
+    "language": "mysql",
     "keywordCase": "upper"
 }
