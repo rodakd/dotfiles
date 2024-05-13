@@ -32,6 +32,7 @@ require("lazy").setup({
     "stevearc/oil.nvim",
     "tpope/vim-surround",
     "tpope/vim-repeat",
+    "nvim-lualine/lualine.nvim",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -49,6 +50,23 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local typescript_tools = require("typescript-tools")
 local luasnip = require('luasnip')
 local oil = require("oil")
+local lualine = require("lualine")
+
+lualine.setup {
+    options = {
+        section_separators = { left = '', right = '' },
+    },
+    sections = {
+        lualine_a = { 'mode' },
+        lualine_b = {
+            { 'filename', path = 1, color = { bg = '#202334' } }
+        },
+        lualine_c = {},
+        lualine_x = {},
+        lualine_y = {},
+        lualine_z = {},
+    },
+}
 
 oil.setup({
     keymaps = {
@@ -298,11 +316,11 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
 vim.opt.autoread = true
+vim.opt.showmode = false
+vim.opt.cmdheight = 0
 
 vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
-vim.cmd('autocmd BufEnter * call system("tmux rename-window " . expand("%"))')
-vim.cmd('autocmd VimLeave * call system("tmux rename-window zsh")')
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("hi NormalNC ctermbg=NONE guibg=NONE")
 vim.cmd("hi Normal ctermbg=NONE guibg=NONE")
@@ -364,7 +382,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.diagnostic.goto_next({ float = false, severity = "error" })
         end, opts)
 
-        vim.keymap.set('n', '<space>w', function()
+        vim.keymap.set('n', '<leader>w', function()
             vim.lsp.buf.format {
                 filter = function(client) return client.name ~= "typescript-tools" end
             }
