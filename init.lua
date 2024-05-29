@@ -31,7 +31,6 @@ require("lazy").setup({
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
-    "tpope/vim-repeat",
     "zbirenbaum/copilot.lua",
     "zbirenbaum/copilot-cmp",
     {
@@ -249,7 +248,7 @@ lspconfig.efm.setup {
     capabilities = capabilities
 }
 
-local MAX_TS_FILE_SIZE = 150 * 1024
+local MAX_TS_FILE_SIZE = 300 * 1024
 
 treesitter_configs.setup({
     sync_install = false,
