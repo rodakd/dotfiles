@@ -14,6 +14,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+    "tpope/vim-sleuth",
     "neovim/nvim-lspconfig",
     "nvim-treesitter/nvim-treesitter",
     "folke/tokyonight.nvim",
@@ -30,9 +31,9 @@ require("lazy").setup({
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
-    "tpope/vim-surround",
     "tpope/vim-repeat",
-    "nvim-lualine/lualine.nvim",
+    "zbirenbaum/copilot.lua",
+    "zbirenbaum/copilot-cmp",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -50,23 +51,24 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local typescript_tools = require("typescript-tools")
 local luasnip = require('luasnip')
 local oil = require("oil")
-local lualine = require("lualine")
+local copilot = require("copilot")
+local copilot_cmp = require("copilot_cmp")
 
-lualine.setup {
-    options = {
-        section_separators = { left = '', right = '' },
+copilot.setup({
+    panel = {
+        enabled = false,
     },
-    sections = {
-        lualine_a = { 'mode' },
-        lualine_b = {
-            { 'filename', path = 1, color = { bg = '#202334' } }
-        },
-        lualine_c = {},
-        lualine_x = {},
-        lualine_y = {},
-        lualine_z = {},
+
+    suggestion = {
+        enabled = false,
     },
-}
+
+    filetypes = {
+        yaml = true,
+    },
+})
+
+copilot_cmp.setup()
 
 oil.setup({
     keymaps = {
@@ -96,28 +98,10 @@ cmp.setup({
     mapping = cmp.mapping.preset.insert({
         ["<C-u>"] = cmp.mapping.scroll_docs(-4),
         ["<C-d>"] = cmp.mapping.scroll_docs(4),
-        ["<C-Space>"] = cmp.mapping.complete(),
-
+        ['<C-Space>'] = cmp.mapping.complete(),
         ["<CR>"] = cmp.mapping.confirm({
             behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
         }),
-
-        ["<Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_next_item()
-            else
-                fallback()
-            end
-        end, { "i", "s" }),
-
-        ["<S-Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            else
-                fallback()
-            end
-        end, { "i", "s" }),
     }),
 
     window = {
@@ -128,6 +112,7 @@ cmp.setup({
     sources = {
         { name = "nvim_lsp" },
         { name = "luasnip" },
+        { name = "copilot" },
     },
 })
 
@@ -205,6 +190,10 @@ lspconfig.golangci_lint_ls.setup {
     }
 }
 
+lspconfig.jdtls.setup {
+    capabilities = capabilities,
+}
+
 local prettierFormat = {
     formatCommand = 'prettierd "${INPUT}"',
     formatStdin = true,
@@ -212,6 +201,11 @@ local prettierFormat = {
 
 local sqlFormatterFormat = {
     formatCommand = 'sql-formatter --config ~/.sqlformatterrc',
+    formatStdin = true
+}
+
+local googleJavaFormat = {
+    formatCommand = 'google-java-format',
     formatStdin = true
 }
 
@@ -229,7 +223,8 @@ lspconfig.efm.setup {
         "typescript",
         "javascriptreact",
         "typescriptreact",
-        "sql"
+        "sql",
+        "java"
     },
 
     settings = {
@@ -247,6 +242,7 @@ lspconfig.efm.setup {
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
+            java = { googleJavaFormat },
         }
     },
 
@@ -297,8 +293,7 @@ telescope.setup({
 })
 
 vim.g.mapleader = " "
-vim.o.ruler = false
-vim.o.laststatus = 0
+vim.opt.ruler = false
 vim.opt.signcolumn = "no"
 vim.opt.nu = true
 vim.opt.relativenumber = true
@@ -318,7 +313,8 @@ vim.opt.smartindent = true
 vim.opt.autoindent = true
 vim.opt.autoread = true
 vim.opt.showmode = false
-vim.opt.cmdheight = 0
+vim.opt.cmdheight = 1
+vim.opt.laststatus = 0
 
 vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
@@ -335,6 +331,10 @@ vim.cmd("hi TelescopePromptTitle cterm=NONE guibg=NONE guifg='#87afff'")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
 vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
+
+vim.cmd(
+    "autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
+)
 
 vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
