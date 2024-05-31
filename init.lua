@@ -33,6 +33,7 @@ require("lazy").setup({
     "stevearc/oil.nvim",
     "zbirenbaum/copilot.lua",
     "zbirenbaum/copilot-cmp",
+    "nvim-pack/nvim-spectre",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
