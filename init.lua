@@ -348,12 +348,6 @@ vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
 
-vim.keymap.set(
-    "n",
-    "<leader>ee",
-    "o<Enter>if err != nil {<CR>}<Esc>Oreturn err<Esc>"
-)
-
 vim.keymap.set("n", "<leader>Y", function()
     vim.cmd(':let @+ = expand("%:p")')
 end, {})
@@ -364,6 +358,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(ev)
         vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
         local opts = { buffer = ev.buf }
+        local bufName = vim.api.nvim_buf_get_name(ev.buf)
+        local isGo = bufName:sub(- #".go") == ".go"
+        local isTypescript = bufName:sub(- #".ts") == ".ts" or bufName:sub(- #".tsx") == ".tsx"
+
         vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
         vim.keymap.set('n', 'gt', telescope_builtin.lsp_type_definitions, opts)
         vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
@@ -388,9 +386,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
                 filter = function(client) return client.name ~= "typescript-tools" end
             }
 
-            local bufName = vim.api.nvim_buf_get_name(ev.buf)
-            local isGo = bufName:sub(- #".go") == ".go"
-
             if isGo then
                 local params = vim.lsp.util.make_range_params()
                 params.context = { only = { "source.organizeImports" } }
@@ -408,6 +403,21 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.cmd.wall()
             vim.diagnostic.enable(ev.buf)
         end, opts)
+
+        if isGo then
+            vim.keymap.set(
+                "n",
+                "<leader>ee",
+                "o<Enter>if err != nil {<CR>}<Esc>Oreturn err<Esc>",
+                opts
+            )
+        end
+
+        if isTypescript then
+            vim.keymap.set("n", "<leader>ci", function()
+                vim.cmd("TSToolsAddMissingImports")
+            end, opts)
+        end
     end,
 })
 
