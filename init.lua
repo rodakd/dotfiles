@@ -417,6 +417,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.keymap.set("n", "<leader>ci", function()
                 vim.cmd("TSToolsAddMissingImports")
             end, opts)
+
+            vim.keymap.set(
+                "n",
+                "<leader>cl",
+                "oconsole.log('\\n\\n\\n <ESC>pa', <ESC>pa, '\\n\\n\\n')<Esc>",
+                opts
+            )
         end
     end,
 })
