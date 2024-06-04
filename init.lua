@@ -194,6 +194,10 @@ lspconfig.jdtls.setup {
     capabilities = capabilities,
 }
 
+lspconfig.pylsp.setup {
+    capabilities = capabilities,
+}
+
 local prettierFormat = {
     formatCommand = 'prettierd "${INPUT}"',
     formatStdin = true,
