@@ -404,7 +404,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
                 end
             end
 
-            vim.cmd.wall()
+            vim.cmd.wall({ bang = true })
             vim.diagnostic.enable(ev.buf)
         end, opts)
 
