@@ -34,6 +34,7 @@ require("lazy").setup({
     "zbirenbaum/copilot-cmp",
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
+    "nvim-treesitter/nvim-treesitter-context",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -53,6 +54,11 @@ local luasnip = require('luasnip')
 local oil = require("oil")
 local copilot = require("copilot")
 local copilot_cmp = require("copilot_cmp")
+local treesitter_context = require("treesitter-context")
+
+treesitter_context.setup {
+    multiline_threshold = 1
+}
 
 copilot.setup({
     panel = {
@@ -138,7 +144,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 nvim_web_devicons.setup()
 
 typescript_tools.setup {
-    capabilities = capabilities
+    capabilities = capabilities,
 }
 
 lspconfig.clangd.setup {
@@ -154,7 +160,7 @@ lspconfig.jsonls.setup {
 
     init_options = {
         provideFormatter = false
-    }
+    },
 }
 
 lspconfig.cssls.setup {
@@ -162,7 +168,7 @@ lspconfig.cssls.setup {
 
     init_options = {
         provideFormatter = false
-    }
+    },
 }
 
 lspconfig.html.setup {
