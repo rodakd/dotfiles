@@ -17,7 +17,6 @@ require("lazy").setup({
     "tpope/vim-sleuth",
     "neovim/nvim-lspconfig",
     "nvim-treesitter/nvim-treesitter",
-    "folke/tokyonight.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
@@ -34,6 +33,7 @@ require("lazy").setup({
     "zbirenbaum/copilot.lua",
     "zbirenbaum/copilot-cmp",
     "nvim-pack/nvim-spectre",
+    "shaunsingh/nord.nvim",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -317,24 +317,16 @@ vim.opt.smartindent = true
 vim.opt.autoindent = true
 vim.opt.autoread = true
 vim.opt.showmode = false
-vim.opt.cmdheight = 1
 vim.opt.laststatus = 0
 
-vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
-vim.cmd("hi NormalNC ctermbg=NONE guibg=NONE")
-vim.cmd("hi Normal ctermbg=NONE guibg=NONE")
-vim.cmd("hi CursorLine guibg='#2A3454'")
-vim.cmd("hi LineNr guifg='#888888'")
-vim.cmd("hi CursorLineNr guifg='#87afff'")
-vim.cmd("hi TelescopeNormal cterm=NONE guibg=NONE")
-vim.cmd("hi TelescopeBorder cterm=NONE guibg=NONE guifg='#87afff'")
-vim.cmd("hi TelescopePromptBorder cterm=NONE guibg=NONE guifg='#87afff'")
-vim.cmd("hi TelescopePromptTitle cterm=NONE guibg=NONE guifg='#87afff'")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
-vim.cmd("highlight! BorderBG guibg=NONE guifg=#87afff")
+
+vim.g.nord_italic = false
+vim.g.nord_bold = false
+require("nord").set()
 
 vim.cmd(
     "autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
