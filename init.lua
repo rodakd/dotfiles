@@ -33,7 +33,7 @@ require("lazy").setup({
     "zbirenbaum/copilot.lua",
     "zbirenbaum/copilot-cmp",
     "nvim-pack/nvim-spectre",
-    "shaunsingh/nord.nvim",
+    "nordtheme/vim",
     {
         'mrcjkb/rustaceanvim',
         version = '^3',
@@ -296,6 +296,7 @@ telescope.setup({
     },
 })
 
+vim.cmd("colorscheme nord")
 vim.g.mapleader = " "
 vim.opt.ruler = false
 vim.opt.signcolumn = "no"
@@ -323,10 +324,6 @@ vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
-
-vim.g.nord_italic = false
-vim.g.nord_bold = false
-require("nord").set()
 
 vim.cmd(
     "autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
