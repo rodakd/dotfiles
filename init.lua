@@ -62,7 +62,11 @@ treesitter_context.setup {
 
 copilot.setup({
     panel = {
-        enabled = false,
+        enabled = true,
+        layout = {
+            position = "left",
+            ratio = 0.4
+        },
     },
 
     suggestion = {
@@ -342,6 +346,7 @@ vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
+vim.keymap.set("n", "cp", function() vim.cmd('Copilot panel') end, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
