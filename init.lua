@@ -377,6 +377,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end, opts)
 
         vim.keymap.set('n', '<leader>w', function()
+            vim.lsp.buf.format()
+
             if isGo then
                 local params = vim.lsp.util.make_range_params()
                 params.context = { only = { "source.organizeImports" } }
@@ -409,6 +411,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
                 "n",
                 "<leader>cl",
                 "oconsole.log('\\n\\n\\n <ESC>pa', <ESC>pa, '\\n\\n\\n')<Esc>",
+                opts
+            )
+
+            vim.keymap.set(
+                "n",
+                "<leader>cmp",
+                "oimport * as React from 'react'<CR><CR>type Props = {}<CR><CR>function <Esc>pa({}: Props) {<CR>return (<CR><div><Esc>pa</div><CR>)<CR>}<Esc>",
                 opts
             )
         end
