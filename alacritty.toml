@@ -54,7 +54,7 @@ cyan = "#6d96a5"
 white = "#aeb3bb"
 
 [font]
-size = 18
+size = 16
 
 [font.bold]
 family = "Inconsolata Nerd Font"
@@ -83,5 +83,5 @@ dynamic_title = true
 startup_mode = "Maximized"
 
 [window.padding]
-x = 10
+x = 40
 y = 10

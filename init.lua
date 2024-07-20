@@ -26,7 +26,6 @@ require("lazy").setup({
     "hrsh7th/cmp-path",
     "hrsh7th/cmp-cmdline",
     "hrsh7th/nvim-cmp",
-    "pmizio/typescript-tools.nvim",
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
@@ -35,11 +34,6 @@ require("lazy").setup({
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
     "nvim-treesitter/nvim-treesitter-context",
-    {
-        'mrcjkb/rustaceanvim',
-        version = '^3',
-        ft = { 'rust' },
-    }
 })
 
 local cmp = require("cmp")
@@ -49,7 +43,6 @@ local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
-local typescript_tools = require("typescript-tools")
 local luasnip = require('luasnip')
 local oil = require("oil")
 local copilot = require("copilot")
@@ -147,8 +140,12 @@ cmp.setup.cmdline(":", {
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 nvim_web_devicons.setup()
 
-typescript_tools.setup {
+lspconfig.tsserver.setup {
     capabilities = capabilities,
+
+    init_options = {
+        provideFormatter = false
+    },
 }
 
 lspconfig.clangd.setup {
@@ -218,11 +215,6 @@ local sqlFormatterFormat = {
     formatStdin = true
 }
 
-local googleJavaFormat = {
-    formatCommand = 'google-java-format',
-    formatStdin = true
-}
-
 lspconfig.efm.setup {
     init_options = { documentFormatting = true },
 
@@ -256,7 +248,6 @@ lspconfig.efm.setup {
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
-            java = { googleJavaFormat },
         }
     },
 
@@ -386,10 +377,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end, opts)
 
         vim.keymap.set('n', '<leader>w', function()
-            vim.lsp.buf.format {
-                filter = function(client) return client.name ~= "typescript-tools" end
-            }
-
             if isGo then
                 local params = vim.lsp.util.make_range_params()
                 params.context = { only = { "source.organizeImports" } }
@@ -418,10 +405,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end
 
         if isTypescript then
-            vim.keymap.set("n", "<leader>ci", function()
-                vim.cmd("TSToolsAddMissingImports")
-            end, opts)
-
             vim.keymap.set(
                 "n",
                 "<leader>cl",
