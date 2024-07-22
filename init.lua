@@ -55,11 +55,7 @@ treesitter_context.setup {
 
 copilot.setup({
     panel = {
-        enabled = true,
-        layout = {
-            position = "left",
-            ratio = 0.4
-        },
+        enabled = false,
     },
 
     suggestion = {
@@ -377,7 +373,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end, opts)
 
         vim.keymap.set('n', '<leader>w', function()
-            vim.lsp.buf.format()
+            vim.lsp.buf.format {
+                filter = function(client) return client.name ~= "tsserver" end
+            }
 
             if isGo then
                 local params = vim.lsp.util.make_range_params()
@@ -417,7 +415,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.keymap.set(
                 "n",
                 "<leader>cmp",
-                "oimport * as React from 'react'<CR><CR>type Props = {}<CR><CR>function <Esc>pa({}: Props) {<CR>return (<CR><div><Esc>pa</div><CR>)<CR>}<Esc>",
+                "aimport * as React from 'react'<CR><CR>type Props = {}<CR><CR>function <Esc>pa({}: Props) {<CR>return (<CR><div><Esc>pa</div><CR>)<CR>}<Esc>",
+                opts
+            )
+
+            vim.keymap.set(
+                "n",
+                "<leader>ct",
+                "oimport * as t from 'common/types'<Esc>",
                 opts
             )
         end
