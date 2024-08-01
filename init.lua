@@ -294,6 +294,7 @@ telescope.setup({
 })
 
 vim.cmd("colorscheme nord")
+vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#434c5e")
 vim.g.mapleader = " "
 vim.opt.ruler = false
 vim.opt.signcolumn = "no"
