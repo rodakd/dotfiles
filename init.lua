@@ -20,7 +20,6 @@ require("lazy").setup({
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
-    "tpope/vim-commentary",
     "hrsh7th/cmp-nvim-lsp",
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-path",
@@ -34,6 +33,8 @@ require("lazy").setup({
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
     "nvim-treesitter/nvim-treesitter-context",
+    "numToStr/Comment.nvim",
+    "JoosepAlviste/nvim-ts-context-commentstring"
 })
 
 local cmp = require("cmp")
@@ -48,6 +49,8 @@ local oil = require("oil")
 local copilot = require("copilot")
 local copilot_cmp = require("copilot_cmp")
 local treesitter_context = require("treesitter-context")
+local comment = require('Comment')
+local commentstring = require('ts_context_commentstring')
 
 treesitter_context.setup {
     multiline_threshold = 1
@@ -55,7 +58,12 @@ treesitter_context.setup {
 
 copilot.setup({
     panel = {
-        enabled = false,
+        enabled = true,
+
+        layout = {
+            position = "left",
+            ratio = 0.4
+        },
     },
 
     suggestion = {
@@ -68,6 +76,14 @@ copilot.setup({
 })
 
 copilot_cmp.setup()
+
+commentstring.setup {
+    enable_autocmd = false,
+}
+
+comment.setup {
+    pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
+}
 
 oil.setup({
     keymaps = {
@@ -334,7 +350,7 @@ vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
-vim.keymap.set("n", "cp", function() vim.cmd('Copilot panel') end, {})
+vim.keymap.set("n", "<leader>cp", function() vim.cmd('Copilot panel') end, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
