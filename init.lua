@@ -34,7 +34,8 @@ require("lazy").setup({
     "nordtheme/vim",
     "nvim-treesitter/nvim-treesitter-context",
     "numToStr/Comment.nvim",
-    "JoosepAlviste/nvim-ts-context-commentstring"
+    "JoosepAlviste/nvim-ts-context-commentstring",
+    "rest-nvim/rest.nvim"
 })
 
 local cmp = require("cmp")
@@ -152,7 +153,7 @@ cmp.setup.cmdline(":", {
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 nvim_web_devicons.setup()
 
-lspconfig.tsserver.setup {
+lspconfig.ts_ls.setup {
     capabilities = capabilities,
 
     init_options = {
@@ -200,20 +201,24 @@ lspconfig.lua_ls.setup {
     capabilities = capabilities
 }
 
-lspconfig.golangci_lint_ls.setup {
-    filetypes = { 'go', 'gomod' },
-    cmd = { 'golangci-lint-langserver', '--severity', 'err', '--debug' },
-    root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
-    init_options = {
-        command = { 'golangci-lint', 'run', '--out-format', 'json' },
-    }
-}
+-- lspconfig.golangci_lint_ls.setup {
+--     filetypes = { 'go', 'gomod' },
+--     cmd = { 'golangci-lint-langserver', '--severity', 'err', '--debug' },
+--     root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
+--     init_options = {
+--         command = { 'golangci-lint', 'run', '--out-format', 'json' },
+--     }
+-- }
 
 lspconfig.jdtls.setup {
     capabilities = capabilities,
 }
 
 lspconfig.pylsp.setup {
+    capabilities = capabilities,
+}
+
+lspconfig.phpactor.setup {
     capabilities = capabilities,
 }
 
@@ -225,6 +230,10 @@ local prettierFormat = {
 local sqlFormatterFormat = {
     formatCommand = 'sql-formatter --config ~/.sqlformatterrc',
     formatStdin = true
+}
+
+local laravelPint = {
+    formatCommand = 'pint-nvim'
 }
 
 lspconfig.efm.setup {
@@ -242,7 +251,8 @@ lspconfig.efm.setup {
         "javascriptreact",
         "typescriptreact",
         "sql",
-        "java"
+        "java",
+        "php"
     },
 
     settings = {
@@ -260,6 +270,7 @@ lspconfig.efm.setup {
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
+            php = { laravelPint }
         }
     },
 
