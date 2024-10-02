@@ -218,7 +218,7 @@ lspconfig.pylsp.setup {
     capabilities = capabilities,
 }
 
-lspconfig.phpactor.setup {
+lspconfig.intelephense.setup {
     capabilities = capabilities,
 }
 
@@ -230,10 +230,6 @@ local prettierFormat = {
 local sqlFormatterFormat = {
     formatCommand = 'sql-formatter --config ~/.sqlformatterrc',
     formatStdin = true
-}
-
-local laravelPint = {
-    formatCommand = 'pint-nvim'
 }
 
 lspconfig.efm.setup {
@@ -252,7 +248,6 @@ lspconfig.efm.setup {
         "typescriptreact",
         "sql",
         "java",
-        "php"
     },
 
     settings = {
@@ -270,7 +265,6 @@ lspconfig.efm.setup {
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
-            php = { laravelPint }
         }
     },
 
@@ -402,7 +396,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         vim.keymap.set('n', '<leader>w', function()
             vim.lsp.buf.format {
-                filter = function(client) return client.name ~= "tsserver" end
+                filter = function(client) return client.name ~= "ts_ls" end
             }
 
             if isGo then
@@ -465,3 +459,10 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] =
             return vim.b[bufnr].show_signs == false
         end,
     })
+
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "json" },
+    callback = function()
+        vim.api.nvim_set_option_value("formatprg", "jq", { scope = 'local' })
+    end,
+})
