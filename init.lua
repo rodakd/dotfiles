@@ -28,8 +28,6 @@ require("lazy").setup({
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
-    "zbirenbaum/copilot.lua",
-    "zbirenbaum/copilot-cmp",
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
     "nvim-treesitter/nvim-treesitter-context",
@@ -47,8 +45,6 @@ local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
 local luasnip = require('luasnip')
 local oil = require("oil")
-local copilot = require("copilot")
-local copilot_cmp = require("copilot_cmp")
 local treesitter_context = require("treesitter-context")
 local comment = require('Comment')
 local commentstring = require('ts_context_commentstring')
@@ -56,27 +52,6 @@ local commentstring = require('ts_context_commentstring')
 treesitter_context.setup {
     multiline_threshold = 1
 }
-
-copilot.setup({
-    panel = {
-        enabled = true,
-
-        layout = {
-            position = "left",
-            ratio = 0.4
-        },
-    },
-
-    suggestion = {
-        enabled = false,
-    },
-
-    filetypes = {
-        yaml = true,
-    },
-})
-
-copilot_cmp.setup()
 
 commentstring.setup {
     enable_autocmd = false,
@@ -128,7 +103,6 @@ cmp.setup({
     sources = {
         { name = "nvim_lsp" },
         { name = "luasnip" },
-        { name = "copilot" },
     },
 })
 
