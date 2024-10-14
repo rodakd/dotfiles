@@ -20,13 +20,6 @@ require("lazy").setup({
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
-    "hrsh7th/cmp-nvim-lsp",
-    "hrsh7th/cmp-buffer",
-    "hrsh7th/cmp-path",
-    "hrsh7th/cmp-cmdline",
-    "hrsh7th/nvim-cmp",
-    "L3MON4D3/LuaSnip",
-    "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
@@ -36,14 +29,12 @@ require("lazy").setup({
     "rest-nvim/rest.nvim"
 })
 
-local cmp = require("cmp")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
-local luasnip = require('luasnip')
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
 local comment = require('Comment')
@@ -74,131 +65,46 @@ oil.setup({
     skip_confirm_for_simple_edits = true,
 })
 
-local cmp_window = cmp.config.window.bordered({
-    winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-    scrollbar = false,
-})
-
-cmp.setup({
-    snippet = {
-        expand = function(args)
-            luasnip.lsp_expand(args.body)
-        end,
-    },
-
-    mapping = cmp.mapping.preset.insert({
-        ["<C-u>"] = cmp.mapping.scroll_docs(-4),
-        ["<C-d>"] = cmp.mapping.scroll_docs(4),
-        ['<C-Space>'] = cmp.mapping.complete(),
-        ["<CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-        }),
-    }),
-
-    window = {
-        completion = cmp_window,
-        documentation = cmp_window
-    },
-
-    sources = {
-        { name = "nvim_lsp" },
-        { name = "luasnip" },
-    },
-})
-
-cmp.setup.cmdline({ "/", "?" }, {
-    mapping = cmp.mapping.preset.cmdline(),
-
-    sources = {
-        { name = "buffer" },
-    },
-})
-
-cmp.setup.cmdline(":", {
-    mapping = cmp.mapping.preset.cmdline(),
-
-    sources = cmp.config.sources({
-        { name = "path" },
-    }, {
-        { name = "cmdline" },
-    }),
-})
-
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
 nvim_web_devicons.setup()
+lspconfig.clangd.setup {}
+lspconfig.gopls.setup {}
+lspconfig.html.setup {}
+lspconfig.jdtls.setup {}
+lspconfig.pylsp.setup {}
+lspconfig.intelephense.setup {}
 
 lspconfig.ts_ls.setup {
-    capabilities = capabilities,
-
     init_options = {
         provideFormatter = false
-    },
-}
-
-lspconfig.clangd.setup {
-    capabilities = capabilities
-}
-
-lspconfig.gopls.setup {
-    capabilities = capabilities
+    }
 }
 
 lspconfig.jsonls.setup {
-    capabilities = capabilities,
-
     init_options = {
         provideFormatter = false
-    },
+    }
 }
 
 lspconfig.cssls.setup {
-    capabilities = capabilities,
-
     init_options = {
         provideFormatter = false
-    },
+    }
 }
 
-lspconfig.html.setup {
-    capabilities = capabilities,
-}
 
 lspconfig.lua_ls.setup {
     settings = {
         Lua = {
             diagnostics = {
-                globals = { 'vim' },
-            },
-        },
-    },
-
-    capabilities = capabilities
-}
-
--- lspconfig.golangci_lint_ls.setup {
---     filetypes = { 'go', 'gomod' },
---     cmd = { 'golangci-lint-langserver', '--severity', 'err', '--debug' },
---     root_dir = lspconfig.util.root_pattern('.git', 'go.mod'),
---     init_options = {
---         command = { 'golangci-lint', 'run', '--out-format', 'json' },
---     }
--- }
-
-lspconfig.jdtls.setup {
-    capabilities = capabilities,
-}
-
-lspconfig.pylsp.setup {
-    capabilities = capabilities,
-}
-
-lspconfig.intelephense.setup {
-    capabilities = capabilities,
+                globals = { 'vim' }
+            }
+        }
+    }
 }
 
 local prettierFormat = {
     formatCommand = 'prettierd "${INPUT}"',
-    formatStdin = true,
+    formatStdin = true
 }
 
 local sqlFormatterFormat = {
@@ -240,9 +146,7 @@ lspconfig.efm.setup {
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
         }
-    },
-
-    capabilities = capabilities
+    }
 }
 
 local MAX_TS_FILE_SIZE = 300 * 1024
