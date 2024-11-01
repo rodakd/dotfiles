@@ -39,6 +39,20 @@ local oil = require("oil")
 local treesitter_context = require("treesitter-context")
 local comment = require('Comment')
 local commentstring = require('ts_context_commentstring')
+local spectre = require('spectre')
+
+spectre.setup({
+    replace_engine = {
+        ["sed"] = {
+            cmd = "sed",
+            args = {
+                "-i",
+                "",
+                "-E",
+            },
+        },
+    },
+})
 
 treesitter_context.setup {
     multiline_threshold = 1
@@ -72,6 +86,8 @@ lspconfig.html.setup {}
 lspconfig.jdtls.setup {}
 lspconfig.pylsp.setup {}
 lspconfig.intelephense.setup {}
+lspconfig.solargraph.setup {}
+lspconfig.rust_analyzer.setup {}
 
 lspconfig.ts_ls.setup {
     init_options = {
