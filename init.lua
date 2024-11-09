@@ -26,7 +26,6 @@ require("lazy").setup({
     "nvim-treesitter/nvim-treesitter-context",
     "numToStr/Comment.nvim",
     "JoosepAlviste/nvim-ts-context-commentstring",
-    "rest-nvim/rest.nvim"
 })
 
 local treesitter_configs = require("nvim-treesitter.configs")
