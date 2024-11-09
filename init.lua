@@ -135,14 +135,12 @@ lspconfig.efm.setup {
         "css",
         "scss",
         "json",
-        "yaml",
         "markdown",
         "javascript",
         "typescript",
         "javascriptreact",
         "typescriptreact",
         "sql",
-        "java",
     },
 
     settings = {
@@ -153,7 +151,6 @@ lspconfig.efm.setup {
             css = { prettierFormat },
             scss = { prettierFormat },
             json = { prettierFormat },
-            yaml = { prettierFormat },
             markdown = { prettierFormat },
             javascript = { prettierFormat },
             typescript = { prettierFormat },
