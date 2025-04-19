@@ -6,10 +6,6 @@ config.line_height = 1.2
 config.window_close_confirmation = 'NeverPrompt'
 config.freetype_load_target = "Light"
 config.font = wezterm.font('Inconsolata Nerd Font', { weight = "Medium" })
-
-if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
-    config.default_prog = { 'wsl', '--cd', '~' }
-    config.font_size = 11
-end
-
+config.font_size = 19
+config.audible_bell = "Disabled"
 return config

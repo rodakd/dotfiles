@@ -79,14 +79,9 @@ oil.setup({
 })
 
 nvim_web_devicons.setup()
-lspconfig.clangd.setup {}
-lspconfig.gopls.setup {}
 lspconfig.html.setup {}
-lspconfig.jdtls.setup {}
-lspconfig.pylsp.setup {}
-lspconfig.intelephense.setup {}
-lspconfig.solargraph.setup {}
-lspconfig.rust_analyzer.setup {}
+lspconfig.pyright.setup {}
+lspconfig.clangd.setup {}
 
 lspconfig.ts_ls.setup {
     init_options = {
@@ -111,7 +106,7 @@ lspconfig.lua_ls.setup {
     settings = {
         Lua = {
             diagnostics = {
-                globals = { 'vim' }
+                globals = { 'vim', 'love' }
             }
         }
     }
@@ -119,6 +114,11 @@ lspconfig.lua_ls.setup {
 
 local prettierFormat = {
     formatCommand = 'prettierd "${INPUT}"',
+    formatStdin = true
+}
+
+local blackFormat = {
+    formatCommand = 'black --quiet -',
     formatStdin = true
 }
 
@@ -141,6 +141,7 @@ lspconfig.efm.setup {
         "javascriptreact",
         "typescriptreact",
         "sql",
+        "python"
     },
 
     settings = {
@@ -157,6 +158,7 @@ lspconfig.efm.setup {
             javascriptreact = { prettierFormat },
             typescriptreact = { prettierFormat },
             sql = { sqlFormatterFormat },
+            python = { blackFormat }
         }
     }
 }
@@ -230,6 +232,7 @@ vim.opt.showmode = false
 vim.opt.laststatus = 0
 
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
+vim.cmd("autocmd BufEnter set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
