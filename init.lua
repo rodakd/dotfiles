@@ -299,7 +299,8 @@ vim.opt.termguicolors = false
 vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8
-vim.opt.updatetime = 50
+vim.o.updatetime = 200
+vim.o.timeoutlen = 200
 vim.opt.isfname:append("@-@")
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -339,7 +340,7 @@ vim.keymap.set("n", "<leader>Y", function()
 end, {})
 
 vim.api.nvim_create_autocmd("LspAttach", {
-    group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+    group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 
     callback = function(ev)
         vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
@@ -357,7 +358,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         vim.keymap.set("n", "gr", function()
             telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
-            telescope_builtin.lsp_references()
         end, opts)
 
         vim.keymap.set({ "n", "v" }, "L", function()
