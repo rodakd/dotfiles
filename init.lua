@@ -20,6 +20,13 @@ require("lazy").setup({
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
+    "hrsh7th/cmp-nvim-lsp",
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-path",
+    "hrsh7th/cmp-cmdline",
+    "hrsh7th/nvim-cmp",
+    "L3MON4D3/LuaSnip",
+    "saadparwaiz1/cmp_luasnip",
     "stevearc/oil.nvim",
     "nvim-pack/nvim-spectre",
     "nordtheme/vim",
@@ -28,12 +35,14 @@ require("lazy").setup({
     "JoosepAlviste/nvim-ts-context-commentstring",
 })
 
+local cmp = require("cmp")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
+local luasnip = require('luasnip')
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
 local comment = require('Comment')
@@ -78,29 +87,96 @@ oil.setup({
     skip_confirm_for_simple_edits = true,
 })
 
-nvim_web_devicons.setup()
-lspconfig.html.setup {}
-lspconfig.pyright.setup {}
-lspconfig.clangd.setup {}
+local cmp_window = cmp.config.window.bordered({
+    winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
+    scrollbar = false,
+})
 
-lspconfig.ts_ls.setup {
-    init_options = {
-        provideFormatter = false
-    }
+cmp.setup({
+    snippet = {
+        expand = function(args)
+            luasnip.lsp_expand(args.body)
+        end,
+    },
+
+    mapping = cmp.mapping.preset.insert({
+        ["<C-u>"] = cmp.mapping.scroll_docs(-4),
+        ["<C-d>"] = cmp.mapping.scroll_docs(4),
+        ['<C-Space>'] = cmp.mapping.complete(),
+        ["<CR>"] = cmp.mapping.confirm({
+            behavior = cmp.ConfirmBehavior.Replace,
+        }),
+    }),
+
+    window = {
+        completion = cmp_window,
+        documentation = cmp_window
+    },
+
+    sources = {
+        { name = "nvim_lsp", max_item_count = 10 },
+        { name = "luasnip",  max_item_count = 10 },
+    },
+})
+
+cmp.setup.cmdline({ "/", "?" }, {
+    mapping = cmp.mapping.preset.cmdline(),
+
+    sources = {
+        { name = "buffer" },
+    },
+})
+
+cmp.setup.cmdline(":", {
+    mapping = cmp.mapping.preset.cmdline(),
+
+    sources = cmp.config.sources({
+        { name = "path" },
+    }, {
+        { name = "cmdline" },
+    }),
+})
+
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+nvim_web_devicons.setup()
+
+lspconfig.html.setup {
+    capabilities = capabilities,
+}
+
+lspconfig.pyright.setup {
+    capabilities = capabilities,
+}
+
+lspconfig.ts_ls.setup {}
+
+lspconfig.clangd.setup {
+    capabilities = capabilities,
+}
+
+lspconfig.gopls.setup {
+    capabilities = capabilities
 }
 
 lspconfig.jsonls.setup {
+    capabilities = capabilities,
+
     init_options = {
         provideFormatter = false
-    }
+    },
 }
 
 lspconfig.cssls.setup {
+    capabilities = capabilities,
+
     init_options = {
         provideFormatter = false
-    }
+    },
 }
 
+lspconfig.html.setup {
+    capabilities = capabilities,
+}
 
 lspconfig.lua_ls.setup {
     settings = {
@@ -109,12 +185,14 @@ lspconfig.lua_ls.setup {
                 globals = { 'vim', 'love' }
             }
         }
-    }
+    },
+
+    capabilities = capabilities
 }
 
 local prettierFormat = {
     formatCommand = 'prettierd "${INPUT}"',
-    formatStdin = true
+    formatStdin = true,
 }
 
 local blackFormat = {
@@ -160,7 +238,9 @@ lspconfig.efm.setup {
             sql = { sqlFormatterFormat },
             python = { blackFormat }
         }
-    }
+    },
+
+    capabilities = capabilities
 }
 
 local MAX_TS_FILE_SIZE = 300 * 1024
@@ -201,7 +281,7 @@ telescope.setup({
 
         preview = {
             filesize_limit = 0.3,
-            highlight_limit = MAX_TS_FILE_SIZE
+            highlight_limit = 1
         }
     },
 })
@@ -216,7 +296,7 @@ vim.opt.relativenumber = true
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
 vim.opt.termguicolors = false
-vim.opt.guicursor = ""
+vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8
 vim.opt.updatetime = 50
@@ -276,7 +356,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
         vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
         vim.keymap.set("n", "gr", function()
-            telescope_builtin.lsp_references({ trim_text = true, show_line = false })
+            telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
+            telescope_builtin.lsp_references()
         end, opts)
 
         vim.keymap.set({ "n", "v" }, "L", function()
@@ -289,7 +370,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         vim.keymap.set('n', '<leader>w', function()
             vim.lsp.buf.format {
-                filter = function(client) return client.name ~= "ts_ls" end
+                filter = function(client) return client.name ~= "typescript-tools" end
             }
 
             if isGo then
@@ -307,7 +388,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
             end
 
             vim.cmd.wall({ bang = true })
-            vim.diagnostic.enable(ev.buf)
         end, opts)
 
         if isGo then
@@ -341,21 +421,5 @@ vim.api.nvim_create_autocmd("LspAttach", {
                 opts
             )
         end
-    end,
-})
-
-vim.lsp.handlers["textDocument/publishDiagnostics"] =
-    vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-        underline = false,
-
-        signs = function(_, bufnr)
-            return vim.b[bufnr].show_signs == false
-        end,
-    })
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "json" },
-    callback = function()
-        vim.api.nvim_set_option_value("formatprg", "jq", { scope = 'local' })
     end,
 })
