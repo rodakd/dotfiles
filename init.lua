@@ -34,6 +34,7 @@ require("lazy").setup({
     "nvim-treesitter/nvim-treesitter-context",
     "numToStr/Comment.nvim",
     "JoosepAlviste/nvim-ts-context-commentstring",
+    "f-person/git-blame.nvim"
 })
 
 local cmp = require("cmp")
@@ -49,6 +50,9 @@ local treesitter_context = require("treesitter-context")
 local comment = require('Comment')
 local commentstring = require('ts_context_commentstring')
 local spectre = require('spectre')
+local gitblame = require('gitblame')
+
+gitblame.setup { enabled = false, date_format = "%d-%m-%Y %H:%M:%S" }
 
 spectre.setup({
     replace_engine = {
