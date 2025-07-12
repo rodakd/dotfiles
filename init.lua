@@ -18,6 +18,7 @@ require("lazy").setup({
     "neovim/nvim-lspconfig",
     "nvim-treesitter/nvim-treesitter",
     "nvim-lua/plenary.nvim",
+    { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release' },
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
     "hrsh7th/cmp-nvim-lsp",
@@ -114,8 +115,9 @@ cmp.setup({
     },
 
     sources = {
-        { name = "nvim_lsp", max_item_count = 10 },
-        { name = "luasnip",  max_item_count = 10 },
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "buffer" },
     },
 })
 
@@ -264,6 +266,17 @@ treesitter_configs.setup({
 
 telescope.setup({
     defaults = {
+        vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--smart-case',
+            '--fixed-strings',
+        },
+
         layout_strategy = "vertical",
 
         layout_config = {
@@ -286,6 +299,7 @@ telescope.setup({
     },
 })
 
+telescope.load_extension('fzf')
 vim.cmd("colorscheme nord")
 vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#434c5e")
 vim.g.mapleader = " "
@@ -299,8 +313,7 @@ vim.opt.termguicolors = false
 vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8
-vim.o.updatetime = 200
-vim.o.timeoutlen = 200
+vim.o.updatetime = 300
 vim.opt.isfname:append("@-@")
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -356,7 +369,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
         vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
-        vim.keymap.set("n", "gr", function()
+        vim.keymap.set("n", "gR", function()
             telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
         end, opts)
 
