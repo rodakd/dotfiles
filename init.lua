@@ -119,9 +119,9 @@ cmp.setup({
     },
 
     sources = {
-        { name = "nvim_lsp" },
-        { name = "luasnip" },
-        { name = "buffer" },
+        { name = "nvim_lsp", max_item_count = 10 },
+        { name = "luasnip",  max_item_count = 10 },
+        { name = "buffer",   max_item_count = 2 },
     },
 })
 
@@ -154,7 +154,17 @@ lspconfig.pyright.setup {
     capabilities = capabilities,
 }
 
-lspconfig.ts_ls.setup {}
+lspconfig.vtsls.setup {
+    capabilities = capabilities,
+
+    initialization_options = {
+        typescript = {
+            tsserver = {
+                maxTsServerMemory = 4096,
+            },
+        },
+    },
+}
 
 lspconfig.clangd.setup {
     capabilities = capabilities,
