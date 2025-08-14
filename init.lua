@@ -35,10 +35,11 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"nordtheme/vim",
 	"nvim-treesitter/nvim-treesitter-context",
-	"numToStr/Comment.nvim",
 	"JoosepAlviste/nvim-ts-context-commentstring",
 	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
+	"nvim-telescope/telescope-ui-select.nvim",
+	"echasnovski/mini.nvim",
 })
 
 local cmp = require("cmp")
@@ -51,20 +52,40 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local luasnip = require("luasnip")
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
-local comment = require("Comment")
-local commentstring = require("ts_context_commentstring")
 local spectre = require("spectre")
 local gitblame = require("gitblame")
 local conform = require("conform")
+local mini_surround = require("mini.surround")
+local mini_comment = require("mini.comment")
+
+mini_surround.setup()
+
+mini_comment.setup({
+	options = {
+		custom_commentstring = function()
+			return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
+		end,
+	},
+})
 
 conform.setup({
+	notify_on_error = false,
 	formatters_by_ft = {
 		lua = { "stylua" },
 		python = { "black" },
 		javascript = { "prettierd" },
+		json = { "prettierd" },
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
+		odin = { "odinfmt" },
+	},
+	formatters = {
+		odinfmt = {
+			command = "odinfmt",
+			args = { "-stdin" },
+			stdin = true,
+		},
 	},
 	format_after_save = {
 		lsp_format = "fallback",
@@ -88,14 +109,6 @@ spectre.setup({
 
 treesitter_context.setup({
 	multiline_threshold = 1,
-})
-
-commentstring.setup({
-	enable_autocmd = false,
-})
-
-comment.setup({
-	pre_hook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook(),
 })
 
 oil.setup({
@@ -189,6 +202,13 @@ lspconfig.clangd.setup({
 	capabilities = capabilities,
 })
 
+lspconfig.ols.setup({
+	capabilities = capabilities,
+	init_options = {
+		enable_references = true,
+	},
+})
+
 lspconfig.gopls.setup({
 	capabilities = capabilities,
 })
@@ -277,8 +297,15 @@ telescope.setup({
 			highlight_limit = 1,
 		},
 	},
+
+	extensions = {
+		["ui-select"] = {
+			require("telescope.themes").get_dropdown({}),
+		},
+	},
 })
 
+telescope.load_extension("ui-select")
 telescope.load_extension("fzf")
 vim.cmd("colorscheme nord")
 vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#434c5e")
@@ -322,9 +349,6 @@ vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
-vim.keymap.set("n", "<leader>cp", function()
-	vim.cmd("Copilot panel")
-end, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')

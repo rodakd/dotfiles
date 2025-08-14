@@ -19,4 +19,5 @@ alias xclip="xclip -selection clipboard"
 alias watch="watch -c -n 1"
 alias klog="stern -t"
 alias love="/Applications/love.app/Contents/MacOS/love"
+alias ports="lsof -nP -iTCP -sTCP:LISTEN"
 kns() { kubectl config set-context --current --namespace="$1" }
