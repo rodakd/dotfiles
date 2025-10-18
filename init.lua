@@ -1,21 +1,25 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
-if not vim.loop.fs_stat(lazypath) then
-	vim.fn.system({
-		"git",
-		"clone",
-		"--filter=blob:none",
-		"https://github.com/folke/lazy.nvim.git",
-		"--branch=stable",
-		lazypath,
-	})
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+	local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+	if vim.v.shell_error ~= 0 then
+		vim.api.nvim_echo({
+			{ "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+			{ out, "WarningMsg" },
+			{ "\nPress any key to exit..." },
+		}, true, {})
+		vim.fn.getchar()
+		os.exit(1)
+	end
 end
 
 vim.opt.rtp:prepend(lazypath)
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
 
 require("lazy").setup({
 	"tpope/vim-sleuth",
-	"neovim/nvim-lspconfig",
 	"nvim-treesitter/nvim-treesitter",
 	"nvim-lua/plenary.nvim",
 	{
@@ -31,15 +35,18 @@ require("lazy").setup({
 	"hrsh7th/nvim-cmp",
 	"L3MON4D3/LuaSnip",
 	"saadparwaiz1/cmp_luasnip",
+	"neovim/nvim-lspconfig",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
 	"nordtheme/vim",
 	"nvim-treesitter/nvim-treesitter-context",
 	"JoosepAlviste/nvim-ts-context-commentstring",
+	"petertriho/nvim-scrollbar",
 	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
 	"nvim-telescope/telescope-ui-select.nvim",
 	"echasnovski/mini.nvim",
+	"eldritch-theme/eldritch.nvim",
 })
 
 local cmp = require("cmp")
@@ -47,7 +54,6 @@ local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
-local lspconfig = require("lspconfig")
 local nvim_web_devicons = require("nvim-web-devicons")
 local luasnip = require("luasnip")
 local oil = require("oil")
@@ -55,38 +61,21 @@ local treesitter_context = require("treesitter-context")
 local spectre = require("spectre")
 local gitblame = require("gitblame")
 local conform = require("conform")
-local mini_surround = require("mini.surround")
 local mini_comment = require("mini.comment")
-
-mini_surround.setup()
-
-mini_comment.setup({
-	options = {
-		custom_commentstring = function()
-			return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
-		end,
-	},
-})
+require("scrollbar").setup()
 
 conform.setup({
 	notify_on_error = false,
+
 	formatters_by_ft = {
 		lua = { "stylua" },
-		python = { "black" },
 		javascript = { "prettierd" },
 		json = { "prettierd" },
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
-		odin = { "odinfmt" },
 	},
-	formatters = {
-		odinfmt = {
-			command = "odinfmt",
-			args = { "-stdin" },
-			stdin = true,
-		},
-	},
+
 	format_after_save = {
 		lsp_format = "fallback",
 	},
@@ -104,6 +93,14 @@ spectre.setup({
 				"-E",
 			},
 		},
+	},
+})
+
+mini_comment.setup({
+	options = {
+		custom_commentstring = function()
+			return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
+		end,
 	},
 })
 
@@ -178,15 +175,15 @@ cmp.setup.cmdline(":", {
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 nvim_web_devicons.setup()
 
-lspconfig.html.setup({
+vim.lsp.enable('html', {
 	capabilities = capabilities,
 })
 
-lspconfig.pyright.setup({
+vim.lsp.enable('pyright', {
 	capabilities = capabilities,
 })
 
-lspconfig.vtsls.setup({
+vim.lsp.enable('vtsls', {
 	capabilities = capabilities,
 
 	initialization_options = {
@@ -198,30 +195,22 @@ lspconfig.vtsls.setup({
 	},
 })
 
-lspconfig.clangd.setup({
+vim.lsp.enable('clangd', {
 	capabilities = capabilities,
 })
 
-lspconfig.ols.setup({
+vim.lsp.enable('ols', {
 	capabilities = capabilities,
 	init_options = {
 		enable_references = true,
 	},
 })
 
-lspconfig.gopls.setup({
+vim.lsp.enable('gopls', {
 	capabilities = capabilities,
 })
 
-lspconfig.jsonls.setup({
-	capabilities = capabilities,
-
-	init_options = {
-		provideFormatter = false,
-	},
-})
-
-lspconfig.cssls.setup({
+vim.lsp.enable('jsonls', {
 	capabilities = capabilities,
 
 	init_options = {
@@ -229,11 +218,15 @@ lspconfig.cssls.setup({
 	},
 })
 
-lspconfig.html.setup({
+vim.lsp.enable('cssls', {
 	capabilities = capabilities,
+
+	init_options = {
+		provideFormatter = false,
+	},
 })
 
-lspconfig.lua_ls.setup({
+vim.lsp.enable('lua_ls', {
 	settings = {
 		Lua = {
 			diagnostics = {
@@ -241,10 +234,13 @@ lspconfig.lua_ls.setup({
 			},
 		},
 	},
+})
 
+vim.lsp.enable("rust_analyzer", {
 	capabilities = capabilities,
 })
 
+nvim_web_devicons.setup()
 local MAX_TS_FILE_SIZE = 300 * 1024
 
 treesitter_configs.setup({
@@ -307,11 +303,8 @@ telescope.setup({
 
 telescope.load_extension("ui-select")
 telescope.load_extension("fzf")
-vim.cmd("colorscheme nord")
-vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#434c5e")
-vim.g.mapleader = " "
 vim.opt.ruler = false
-vim.opt.signcolumn = "no"
+vim.opt.signcolumn = "yes"
 vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.hlsearch = false
@@ -365,8 +358,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 		local opts = { buffer = ev.buf }
 		local bufName = vim.api.nvim_buf_get_name(ev.buf)
-		local isGo = bufName:sub(-#".go") == ".go"
-		local isTypescript = bufName:sub(-#".ts") == ".ts" or bufName:sub(-#".tsx") == ".tsx"
 
 		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
 		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
@@ -388,38 +379,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end, opts)
 
 		vim.keymap.set("n", "<leader>w", function()
-			if isGo then
-				local params = vim.lsp.util.make_range_params()
-				params.context = { only = { "source.organizeImports" } }
-				local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params)
-				for cid, res in pairs(result or {}) do
-					for _, r in pairs(res.result or {}) do
-						if r.edit then
-							local enc = (vim.lsp.get_client_by_id(cid) or {}).offset_encoding or "utf-16"
-							vim.lsp.util.apply_workspace_edit(r.edit, enc)
-						end
-					end
-				end
-			end
-
 			vim.cmd.wall({ bang = true })
 		end, opts)
-
-		if isGo then
-			vim.keymap.set("n", "<leader>ee", "o<Enter>if err != nil {<CR>}<Esc>Oreturn err<Esc>", opts)
-		end
-
-		if isTypescript then
-			vim.keymap.set("n", "<leader>cl", "oconsole.log('\\n\\n\\n <ESC>pa', <ESC>pa, '\\n\\n\\n')<Esc>", opts)
-
-			vim.keymap.set(
-				"n",
-				"<leader>cmp",
-				"aimport * as React from 'react'<CR><CR>type Props = {}<CR><CR>function <Esc>pa({}: Props) {<CR>return (<CR><div><Esc>pa</div><CR>)<CR>}<Esc>",
-				opts
-			)
-
-			vim.keymap.set("n", "<leader>ct", "oimport * as t from 'common/types'<Esc>", opts)
-		end
 	end,
 })
+
+vim.cmd("colorscheme eldritch")
+vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#BF4F8E")
