@@ -1,8 +1,0 @@
-export ZSH="$HOME/.oh-my-zsh"
-source $ZSH/oh-my-zsh.sh
-PROMPT='%{$fg_bold[cyan]%}%~%{$reset_color%} '
-ZSH_THEME_GIT_PROMPT_PREFIX=" %B$FG[005]("
-ZSH_THEME_GIT_PROMPT_SUFFIX=")%{$reset_color%}"
-ZSH_THEME_GIT_PROMPT_DIRTY=""
-ZSH_THEME_GIT_PROMPT_CLEAN=""
-FZF_DEFAULT_OPTS="--color=bg+:#2F343F,gutter:-1"
