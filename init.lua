@@ -24,7 +24,7 @@ require("lazy").setup({
 	"nvim-lua/plenary.nvim",
 	{
 		"nvim-telescope/telescope-fzf-native.nvim",
-		build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
+		build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build --config Release",
 	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
@@ -38,15 +38,15 @@ require("lazy").setup({
 	"neovim/nvim-lspconfig",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
-	"nordtheme/vim",
 	"nvim-treesitter/nvim-treesitter-context",
 	"JoosepAlviste/nvim-ts-context-commentstring",
-	"petertriho/nvim-scrollbar",
+	"dstein64/nvim-scrollview",
 	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
 	"nvim-telescope/telescope-ui-select.nvim",
 	"echasnovski/mini.nvim",
-	"eldritch-theme/eldritch.nvim",
+	"nvim-lualine/lualine.nvim",
+	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
 local cmp = require("cmp")
@@ -62,7 +62,16 @@ local spectre = require("spectre")
 local gitblame = require("gitblame")
 local conform = require("conform")
 local mini_comment = require("mini.comment")
-require("scrollbar").setup()
+local catppuccin = require("catppuccin")
+local lualine = require("lualine")
+
+lualine.setup()
+
+catppuccin.setup({
+	auto_integrations = true,
+})
+
+require("scrollview").setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -123,7 +132,7 @@ oil.setup({
 
 local cmp_window = cmp.config.window.bordered({
 	winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-	scrollbar = false,
+	scrollbar = true,
 })
 
 cmp.setup({
@@ -152,6 +161,14 @@ cmp.setup({
 		{ name = "luasnip", max_item_count = 10 },
 		{ name = "buffer", max_item_count = 2 },
 	},
+
+	formatting = {
+		format = function(entry, vim_item)
+			vim_item.abbr = " " .. vim_item.abbr
+			vim_item.menu = (vim_item.menu or "") .. " "
+			return vim_item
+		end,
+	},
 })
 
 cmp.setup.cmdline({ "/", "?" }, {
@@ -175,15 +192,15 @@ cmp.setup.cmdline(":", {
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 nvim_web_devicons.setup()
 
-vim.lsp.enable('html', {
+vim.lsp.enable("html", {
 	capabilities = capabilities,
 })
 
-vim.lsp.enable('pyright', {
+vim.lsp.enable("pyright", {
 	capabilities = capabilities,
 })
 
-vim.lsp.enable('vtsls', {
+vim.lsp.enable("vtsls", {
 	capabilities = capabilities,
 
 	initialization_options = {
@@ -195,30 +212,22 @@ vim.lsp.enable('vtsls', {
 	},
 })
 
-vim.lsp.enable('clangd', {
+vim.lsp.enable("clangd", {
 	capabilities = capabilities,
 })
 
-vim.lsp.enable('ols', {
+vim.lsp.enable("ols", {
 	capabilities = capabilities,
 	init_options = {
 		enable_references = true,
 	},
 })
 
-vim.lsp.enable('gopls', {
+vim.lsp.enable("gopls", {
 	capabilities = capabilities,
 })
 
-vim.lsp.enable('jsonls', {
-	capabilities = capabilities,
-
-	init_options = {
-		provideFormatter = false,
-	},
-})
-
-vim.lsp.enable('cssls', {
+vim.lsp.enable("jsonls", {
 	capabilities = capabilities,
 
 	init_options = {
@@ -226,7 +235,15 @@ vim.lsp.enable('cssls', {
 	},
 })
 
-vim.lsp.enable('lua_ls', {
+vim.lsp.enable("cssls", {
+	capabilities = capabilities,
+
+	init_options = {
+		provideFormatter = false,
+	},
+})
+
+vim.lsp.enable("lua_ls", {
 	settings = {
 		Lua = {
 			diagnostics = {
@@ -309,7 +326,7 @@ vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
-vim.opt.termguicolors = false
+-- vim.opt.termguicolors = false
 vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8
@@ -384,5 +401,24 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-vim.cmd("colorscheme eldritch")
-vim.cmd("hi Visual ctermfg=none ctermbg=0 guibg=#BF4F8E")
+vim.cmd("colorscheme catppuccin-mocha")
+local colors = require("catppuccin.palettes").get_palette()
+
+local TelescopeColor = {
+	TelescopeMatching = { fg = colors.flamingo },
+	TelescopeSelection = { fg = colors.text, bg = colors.surface0, bold = true },
+	TelescopePromptPrefix = { bg = colors.base },
+	TelescopePromptNormal = { bg = colors.base },
+	TelescopeResultsNormal = { bg = colors.base },
+	TelescopePreviewNormal = { bg = colors.base },
+	TelescopePromptBorder = { bg = colors.base, fg = colors.pink },
+	TelescopeResultsBorder = { bg = colors.base, fg = colors.pink },
+	TelescopePreviewBorder = { bg = colors.base, fg = colors.pink },
+	TelescopePromptTitle = { bg = colors.base, fg = colors.pink },
+	TelescopeResultsTitle = { bg = colors.base, fg = colors.pink },
+	TelescopePreviewTitle = { bg = colors.base, fg = colors.pink },
+}
+
+for hl, col in pairs(TelescopeColor) do
+	vim.api.nvim_set_hl(0, hl, col)
+end
