@@ -130,11 +130,6 @@ oil.setup({
 	skip_confirm_for_simple_edits = true,
 })
 
-local cmp_window = cmp.config.window.bordered({
-	winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-	scrollbar = true,
-})
-
 cmp.setup({
 	snippet = {
 		expand = function(args)
@@ -151,23 +146,10 @@ cmp.setup({
 		}),
 	}),
 
-	window = {
-		completion = cmp_window,
-		documentation = cmp_window,
-	},
-
 	sources = {
 		{ name = "nvim_lsp", max_item_count = 10 },
 		{ name = "luasnip", max_item_count = 10 },
 		{ name = "buffer", max_item_count = 2 },
-	},
-
-	formatting = {
-		format = function(entry, vim_item)
-			vim_item.abbr = " " .. vim_item.abbr
-			vim_item.menu = (vim_item.menu or "") .. " "
-			return vim_item
-		end,
 	},
 })
 
@@ -326,9 +308,8 @@ vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
--- vim.opt.termguicolors = false
 vim.opt.guicursor = "n-v-c-i:block"
-vim.opt.cursorline = true
+vim.opt.cursorline = false
 vim.opt.scrolloff = 8
 vim.o.updatetime = 300
 vim.opt.isfname:append("@-@")
@@ -422,3 +403,5 @@ local TelescopeColor = {
 for hl, col in pairs(TelescopeColor) do
 	vim.api.nvim_set_hl(0, hl, col)
 end
+
+vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
