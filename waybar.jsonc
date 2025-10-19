@@ -1,0 +1,18 @@
+// -*- mode: jsonc -*-
+{
+    "layer": "top",
+    "position": "top",
+    "height": 42,
+    "spacing": 4,
+
+    "modules-right": [
+        "pulseaudio",
+        "cpu",
+        "memory",
+        "clock"
+    ],
+
+    "include": [
+	"~/.config/waybar/modules.json"
+    ]
+}
