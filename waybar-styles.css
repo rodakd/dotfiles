@@ -35,6 +35,11 @@ window#waybar {
     background: transparent;
 }
 
+#mpd.disconnected, #mpd.stopped, #mpd.paused {
+    background-color: transparent;
+    color: transparent;
+}
+
 #clock {
     margin-top: 2px;
     margin-right: 10px;
