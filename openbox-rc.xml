@@ -56,7 +56,7 @@
     <animateIconify>yes</animateIconify>
     <font place="ActiveWindow">
       <name>Fira Sans SemiBold</name>
-      <size>12</size>
+      <size>10</size>
       <!-- font size in points -->
       <weight>Bold</weight>
       <!-- 'bold' or 'normal' -->
@@ -65,7 +65,7 @@
     </font>
     <font place="InactiveWindow">
       <name>Fira Sans SemiBold</name>
-      <size>12</size>
+      <size>10</size>
       <!-- font size in points -->
       <weight>Bold</weight>
       <!-- 'bold' or 'normal' -->
@@ -323,30 +323,20 @@
         <height>100%</height>
       </action>
     </keybind>
-    <keybind key="W-m">
-      <action name="Execute">
-        <command>xrandr --output HDMI-1 --mode 3840x2160 --rate 120 --primary --output DP-1 --off</command>
-      </action>
-    </keybind>
-    <keybind key="W-S-m">
-      <action name="Execute">
-        <command>xrandr --output DP-1 --auto --primary --output HDMI-1 --off</command>
-      </action>
-    </keybind>
     <!-- Keybindings for running applications -->
     <keybind key="A-1">
       <action name="Execute">
-        <command>/home/rodakd/.bin/open "google-chrome.Google-chrome" google-chrome-stable</command>
+        <command>open "google-chrome.Google-chrome" google-chrome-stable</command>
       </action>
     </keybind>
     <keybind key="A-2">
       <action name="Execute">
-        <command>/home/rodakd/.bin/open "cursor.Cursor" cursor</command>
+        <command>open "cursor.Cursor" cursor</command>
       </action>
     </keybind>
     <keybind key="A-3">
       <action name="Execute">
-        <command>/home/rodakd/.bin/open "kitty.Kitty" kitty</command>
+        <command>open "kitty.Kitty" kitty</command>
       </action>
     </keybind>
     <keybind key="W-e">
@@ -395,6 +385,11 @@
     <keybind key="XF86AudioMute">
       <action name="Execute">
         <command>amixer -D pulse set Master toggle</command>
+      </action>
+    </keybind>
+    <keybind key="W-c">
+      <action name="Execute">
+        <command>rofi -show calc -modi calc -terse</command>
       </action>
     </keybind>
   </keyboard>
