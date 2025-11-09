@@ -1,0 +1,10 @@
+#!/bin/bash
+
+APP_CLASS="$1"
+CMD="$2"
+
+if wmctrl -lx | grep -i "^.*\s${APP_CLASS}\s" > /dev/null; then
+  wmctrl -xa "$APP_CLASS"
+else
+  $CMD &
+fi
