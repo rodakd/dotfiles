@@ -1,0 +1,4 @@
+#!/bin/bash
+monitor_hdmi_4k
+set_default_audio_device "HDMI"
+steam -bigpicture

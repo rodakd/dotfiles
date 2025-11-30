@@ -1,0 +1,2 @@
+#!/bin/bash
+set_default_audio_device "DX3"

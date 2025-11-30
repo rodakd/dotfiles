@@ -1,0 +1,2 @@
+#!/bin/bash
+wpctl status | awk '/Sinks:/,/Sources:/' | head -n -1 | grep "$1" | tr -d "*" | tr -d "." | awk '{print $2}' 
