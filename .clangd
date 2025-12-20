@@ -1,3 +1,0 @@
-CompileFlags:
-  Add: ['-Wall', '-Werror', '-Wextra', '-Wshadow', '-Wdouble-promotion', '-Wformat=2', '-Wformat-truncation', -Wundef', '-fno-common', '-Wno-unused-parameter']
-  Compiler: gcc

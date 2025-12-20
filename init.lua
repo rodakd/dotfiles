@@ -28,14 +28,7 @@ require("lazy").setup({
 	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
-	"hrsh7th/cmp-nvim-lsp",
-	"hrsh7th/cmp-buffer",
-	"hrsh7th/cmp-path",
-	"hrsh7th/cmp-cmdline",
-	"hrsh7th/nvim-cmp",
 	"L3MON4D3/LuaSnip",
-	"saadparwaiz1/cmp_luasnip",
-	"neovim/nvim-lspconfig",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
 	"nvim-treesitter/nvim-treesitter-context",
@@ -43,19 +36,16 @@ require("lazy").setup({
 	"dstein64/nvim-scrollview",
 	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
-	"nvim-telescope/telescope-ui-select.nvim",
 	"echasnovski/mini.nvim",
 	"nvim-lualine/lualine.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
-local cmp = require("cmp")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local nvim_web_devicons = require("nvim-web-devicons")
-local luasnip = require("luasnip")
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
 local spectre = require("spectre")
@@ -63,15 +53,13 @@ local gitblame = require("gitblame")
 local conform = require("conform")
 local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
-local lualine = require("lualine")
-
-lualine.setup()
+local scrollview = require("scrollview")
 
 catppuccin.setup({
 	auto_integrations = true,
 })
 
-require("scrollview").setup()
+scrollview.setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -83,6 +71,7 @@ conform.setup({
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
+		c = { "clang-format" },
 	},
 
 	format_after_save = {
@@ -130,117 +119,7 @@ oil.setup({
 	skip_confirm_for_simple_edits = true,
 })
 
-cmp.setup({
-	snippet = {
-		expand = function(args)
-			luasnip.lsp_expand(args.body)
-		end,
-	},
-
-	mapping = cmp.mapping.preset.insert({
-		["<C-u>"] = cmp.mapping.scroll_docs(-4),
-		["<C-d>"] = cmp.mapping.scroll_docs(4),
-		["<C-Space>"] = cmp.mapping.complete(),
-		["<CR>"] = cmp.mapping.confirm({
-			behavior = cmp.ConfirmBehavior.Replace,
-		}),
-	}),
-
-	sources = {
-		{ name = "nvim_lsp", max_item_count = 10 },
-		{ name = "luasnip", max_item_count = 10 },
-		{ name = "buffer", max_item_count = 2 },
-	},
-})
-
-cmp.setup.cmdline({ "/", "?" }, {
-	mapping = cmp.mapping.preset.cmdline(),
-
-	sources = {
-		{ name = "buffer" },
-	},
-})
-
-cmp.setup.cmdline(":", {
-	mapping = cmp.mapping.preset.cmdline(),
-
-	sources = cmp.config.sources({
-		{ name = "path" },
-	}, {
-		{ name = "cmdline" },
-	}),
-})
-
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
 nvim_web_devicons.setup()
-
-vim.lsp.enable("html", {
-	capabilities = capabilities,
-})
-
-vim.lsp.enable("pyright", {
-	capabilities = capabilities,
-})
-
-vim.lsp.enable("vtsls", {
-	capabilities = capabilities,
-
-	initialization_options = {
-		typescript = {
-			tsserver = {
-				maxTsServerMemory = 4096,
-			},
-		},
-	},
-})
-
-vim.lsp.enable("clangd", {
-	capabilities = capabilities,
-})
-
-vim.lsp.enable("ols", {
-	capabilities = capabilities,
-	init_options = {
-		enable_references = true,
-	},
-})
-
-vim.lsp.enable("gopls", {
-	capabilities = capabilities,
-})
-
-vim.lsp.enable("jsonls", {
-	capabilities = capabilities,
-
-	init_options = {
-		provideFormatter = false,
-	},
-})
-
-vim.lsp.enable("cssls", {
-	capabilities = capabilities,
-
-	init_options = {
-		provideFormatter = false,
-	},
-})
-
-vim.lsp.enable("lua_ls", {
-	settings = {
-		Lua = {
-			diagnostics = {
-				globals = { "vim", "love" },
-			},
-		},
-	},
-})
-
-vim.lsp.enable("rust_analyzer", {
-	capabilities = capabilities,
-})
-
-nvim_web_devicons.setup()
-local MAX_TS_FILE_SIZE = 300 * 1024
 
 treesitter_configs.setup({
 	sync_install = false,
@@ -254,6 +133,7 @@ treesitter_configs.setup({
 		disable = function(_, bufnr)
 			local buf_name = vim.api.nvim_buf_get_name(bufnr)
 			local file_size = vim.api.nvim_call_function("getfsize", { buf_name })
+			local MAX_TS_FILE_SIZE = 300 * 1024
 			return file_size > MAX_TS_FILE_SIZE
 		end,
 	},
@@ -300,7 +180,6 @@ telescope.setup({
 	},
 })
 
-telescope.load_extension("ui-select")
 telescope.load_extension("fzf")
 vim.opt.ruler = false
 vim.opt.signcolumn = "yes"
@@ -328,10 +207,11 @@ vim.cmd("autocmd BufEnter set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
-
+vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
 vim.cmd(
 	"autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
 )
+vim.cmd("colorscheme catppuccin-mocha")
 
 vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
@@ -349,40 +229,10 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
-vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+vim.keymap.set("n", "<leader>w", function()
+	vim.cmd.wall({ bang = true })
+end, opts)
 
-	callback = function(ev)
-		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-		local opts = { buffer = ev.buf }
-		local bufName = vim.api.nvim_buf_get_name(ev.buf)
-
-		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
-		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
-		vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
-		vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
-
-		vim.keymap.set("n", "gR", function()
-			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
-		end, opts)
-
-		vim.keymap.set({ "n", "v" }, "L", function()
-			vim.diagnostic.open_float(0, { scope = "line" })
-		end, opts)
-
-		vim.keymap.set("n", "<C-m>", function()
-			vim.diagnostic.goto_next({ float = false, severity = "error" })
-		end, opts)
-
-		vim.keymap.set("n", "<leader>w", function()
-			vim.cmd.wall({ bang = true })
-		end, opts)
-	end,
-})
-
-vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
 
 local TelescopeColor = {
@@ -403,5 +253,3 @@ local TelescopeColor = {
 for hl, col in pairs(TelescopeColor) do
 	vim.api.nvim_set_hl(0, hl, col)
 end
-
-vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
