@@ -54,6 +54,9 @@ local conform = require("conform")
 local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
 local scrollview = require("scrollview")
+local lualine = require("lualine")
+
+lualine.setup()
 
 catppuccin.setup({
 	auto_integrations = true,
