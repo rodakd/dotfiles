@@ -40,7 +40,7 @@
                   'Active' - where the active window is -->
   </placement>
   <theme>
-    <name>Numix-Clone</name>
+    <name>catppuccin-mocha</name>
     <titleLayout>NLIMC</titleLayout>
     <!--
       available characters are NDSLIMC, each can occur at most once.
@@ -331,11 +331,6 @@
     </keybind>
     <keybind key="A-2">
       <action name="Execute">
-        <command>open "cursor.Cursor" cursor</command>
-      </action>
-    </keybind>
-    <keybind key="A-3">
-      <action name="Execute">
         <command>open "kitty.Kitty" kitty</command>
       </action>
     </keybind>
@@ -355,6 +350,11 @@
     <keybind key="W-space">
       <action name="Execute">
         <command>rofi -show run</command>
+      </action>
+    </keybind>
+    <keybind key="A-S-4">
+      <action name="Execute">
+        <command>screenshot</command>
       </action>
     </keybind>
     <keybind key="XF86AudioLowerVolume">
@@ -390,6 +390,16 @@
     <keybind key="W-c">
       <action name="Execute">
         <command>rofi -show calc -modi calc -terse</command>
+      </action>
+    </keybind>
+    <keybind key="Home">
+      <action name="Execute">
+        <command>bigpicture</command>
+      </action>
+    </keybind>
+    <keybind key="W-Home">
+      <action name="Execute">
+        <command>audio_fiio</command>
       </action>
     </keybind>
   </keyboard>
