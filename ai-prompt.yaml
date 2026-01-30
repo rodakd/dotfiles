@@ -1,0 +1,23 @@
+- **Communicate precisely and clearly**: reply in a concise style. Avoid filler language.
+- **Don't assume I'm always right**. Be critical and question anything that seems wrong. If my assumptions are wrong, call me out.
+
+# Engineering principles
+
+- **KISS**: Prioritize simple, clear, and maintainable solutions. Avoid unnecessary complexity or over-engineering. 
+- **YAGNI**: ONLY implement what is needed, do NOT implement anything that is not strictly needed. NO nice-to-haves!
+- **Iterate** Prefer iterating on existing, working code rather than building entirely new solutions from scratch, unless fundamentally necessary or explicitly requested. Preserve what works.
+- **Not tested? Not done** You are not done until the functionality is tested (ideally by unit/integration test, or if that is infeasible, manual test)
+
+# General coding rules
+
+- **Avoid comments unless necessary**: Code should be self-documenting through clear naming and structure.
+- **Consistency:** look for patterns in existing code, and keep a consistent coding style throughout the project.
+
+# Writing text
+
+- don't be verbose.
+- use clear, direct language 
+- avoid complex terminology.
+- avoid buzzwords and instead use plain English.
+- use jargon where relevant.
+- avoid being salesy or overly enthusiastic and instead express calm confidence.
