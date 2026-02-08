@@ -28,16 +28,11 @@ require("lazy").setup({
 	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
-	"L3MON4D3/LuaSnip",
 	"stevearc/oil.nvim",
-	"nvim-pack/nvim-spectre",
 	"nvim-treesitter/nvim-treesitter-context",
 	"JoosepAlviste/nvim-ts-context-commentstring",
-	"dstein64/nvim-scrollview",
-	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
 	"echasnovski/mini.nvim",
-	"nvim-lualine/lualine.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
@@ -48,21 +43,13 @@ local telescope_builtin = require("telescope.builtin")
 local nvim_web_devicons = require("nvim-web-devicons")
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
-local spectre = require("spectre")
-local gitblame = require("gitblame")
 local conform = require("conform")
 local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
-local scrollview = require("scrollview")
-local lualine = require("lualine")
-
-lualine.setup()
 
 catppuccin.setup({
 	auto_integrations = true,
 })
-
-scrollview.setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -79,21 +66,6 @@ conform.setup({
 
 	format_after_save = {
 		lsp_format = "fallback",
-	},
-})
-
-gitblame.setup({ enabled = false, date_format = "%d-%m-%Y %H:%M:%S" })
-
-spectre.setup({
-	replace_engine = {
-		["sed"] = {
-			cmd = "sed",
-			args = {
-				"-i",
-				"",
-				"-E",
-			},
-		},
 	},
 })
 
@@ -223,7 +195,6 @@ vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
-vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
