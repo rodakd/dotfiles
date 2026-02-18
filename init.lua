@@ -227,3 +227,16 @@ local TelescopeColor = {
 for hl, col in pairs(TelescopeColor) do
 	vim.api.nvim_set_hl(0, hl, col)
 end
+
+vim.keymap.set({ "n", "v" }, "gd", function()
+	vim.cmd('noau normal! "vy"')
+	local text = vim.fn.getreg("v")
+	vim.fn.setreg("v", {})
+	text = string.gsub(text, "\n", "")
+
+	if #text <= 0 then
+		text = vim.fn.expand("<cword>")
+	end
+
+	telescope_builtin.live_grep({ default_text = text })
+end, {})
