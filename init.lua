@@ -30,11 +30,7 @@ require("lazy").setup({
 	"nvim-tree/nvim-web-devicons",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
-	"JoosepAlviste/nvim-ts-context-commentstring",
 	"stevearc/conform.nvim",
-	"nvim-telescope/telescope-ui-select.nvim",
-	"echasnovski/mini.nvim",
-	"nvim-lualine/lualine.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
@@ -46,11 +42,7 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
-local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
-local lualine = require("lualine")
-
-lualine.setup()
 
 catppuccin.setup({
 	auto_integrations = true,
@@ -67,10 +59,6 @@ conform.setup({
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
 	},
-
-	format_after_save = {
-		lsp_format = "fallback",
-	},
 })
 
 spectre.setup({
@@ -83,14 +71,6 @@ spectre.setup({
 				"-E",
 			},
 		},
-	},
-})
-
-mini_comment.setup({
-	options = {
-		custom_commentstring = function()
-			return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
-		end,
 	},
 })
 
@@ -161,15 +141,8 @@ telescope.setup({
 			highlight_limit = 1,
 		},
 	},
-
-	extensions = {
-		["ui-select"] = {
-			require("telescope.themes").get_dropdown({}),
-		},
-	},
 })
 
-telescope.load_extension("ui-select")
 telescope.load_extension("fzf")
 vim.opt.ruler = false
 vim.opt.signcolumn = "yes"
@@ -219,42 +192,18 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
-vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+vim.keymap.set({ "n", "v" }, "gd", function()
+	vim.cmd('noau normal! "vy"')
+	local text = vim.fn.getreg("v")
+	vim.fn.setreg("v", {})
+	text = string.gsub(text, "\n", "")
 
-	callback = function(ev)
-		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-		local opts = { buffer = ev.buf }
+	if #text <= 0 then
+		text = vim.fn.expand("<cword>")
+	end
 
-		vim.keymap.set("n", "gH", telescope_builtin.highlights, opts)
-		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
-		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
-		vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
-		vim.keymap.set("n", "K", function()
-			vim.lsp.buf.hover({
-				border = "rounded",
-			})
-		end, opts)
-		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
-
-		vim.keymap.set("n", "gR", function()
-			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
-		end, opts)
-
-		vim.keymap.set({ "n", "v" }, "L", function()
-			vim.diagnostic.open_float(0, { scope = "line" })
-		end, opts)
-
-		vim.keymap.set("n", "<C-m>", function()
-			vim.diagnostic.goto_next()
-		end, opts)
-
-		vim.keymap.set("n", "<leader>w", function()
-			vim.cmd.wall({ bang = true })
-		end, opts)
-	end,
-})
+	telescope_builtin.live_grep({ default_text = text })
+end, {})
 
 vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
