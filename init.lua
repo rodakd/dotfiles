@@ -28,40 +28,23 @@ require("lazy").setup({
 	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
-	"hrsh7th/cmp-nvim-lsp",
-	"hrsh7th/cmp-buffer",
-	"hrsh7th/cmp-path",
-	"hrsh7th/cmp-cmdline",
-	"hrsh7th/nvim-cmp",
-	"L3MON4D3/LuaSnip",
-	"saadparwaiz1/cmp_luasnip",
-	"neovim/nvim-lspconfig",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
-	"nvim-treesitter/nvim-treesitter-context",
 	"JoosepAlviste/nvim-ts-context-commentstring",
-	"dstein64/nvim-scrollview",
-	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
 	"nvim-telescope/telescope-ui-select.nvim",
 	"echasnovski/mini.nvim",
 	"nvim-lualine/lualine.nvim",
-	"onsails/lspkind.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
-local cmp = require("cmp")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local nvim_web_devicons = require("nvim-web-devicons")
-local lspkind = require("lspkind")
-local luasnip = require("luasnip")
 local oil = require("oil")
-local treesitter_context = require("treesitter-context")
 local spectre = require("spectre")
-local gitblame = require("gitblame")
 local conform = require("conform")
 local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
@@ -72,8 +55,6 @@ lualine.setup()
 catppuccin.setup({
 	auto_integrations = true,
 })
-
-require("scrollview").setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -91,8 +72,6 @@ conform.setup({
 		lsp_format = "fallback",
 	},
 })
-
-gitblame.setup({ enabled = false, date_format = "%d-%m-%Y %H:%M:%S" })
 
 spectre.setup({
 	replace_engine = {
@@ -115,10 +94,6 @@ mini_comment.setup({
 	},
 })
 
-treesitter_context.setup({
-	multiline_threshold = 1,
-})
-
 oil.setup({
 	keymaps = {
 		["<C-p>"] = false,
@@ -132,113 +107,8 @@ oil.setup({
 	skip_confirm_for_simple_edits = true,
 })
 
-local function border(hl_name)
-	return {
-		{ "╭", hl_name },
-		{ "─", hl_name },
-		{ "╮", hl_name },
-		{ "│", hl_name },
-		{ "╯", hl_name },
-		{ "─", hl_name },
-		{ "╰", hl_name },
-		{ "│", hl_name },
-	}
-end
-
-cmp.setup({
-	formatting = {
-		fields = { "icon", "abbr", "menu", "kind" },
-
-		format = function(entry, vim_item)
-			if vim.tbl_contains({ "path" }, entry.source.name) then
-				local icon, hl_group = nvim_web_devicons.get_icon(entry:get_completion_item().label)
-				if icon then
-					vim_item.kind = " " + icon
-					vim_item.kind_hl_group = hl_group
-				end
-			end
-
-			local fmt =
-				lspkind.cmp_format({ maxwidth = 50, mode = "symbol_text", ellipsis_char = "..." })(entry, vim_item)
-
-			local strings = vim.split(fmt.kind, "%s", { trimempty = true })
-			local kind = strings[2] or strings[1] or ""
-			fmt.kind = " " .. kind .. " "
-			return fmt
-		end,
-	},
-
-	window = {
-		completion = {
-			border = border("CmpBorder"),
-			scrollbar = false,
-		},
-
-		documentation = {
-			border = border("CmpDocBorder"),
-			scrollbar = false,
-		},
-	},
-
-	snippet = {
-		expand = function(args)
-			luasnip.lsp_expand(args.body)
-		end,
-	},
-
-	mapping = cmp.mapping.preset.insert({
-		["<C-u>"] = cmp.mapping.scroll_docs(-4),
-		["<C-d>"] = cmp.mapping.scroll_docs(4),
-		["<C-Space>"] = cmp.mapping.complete(),
-		["<CR>"] = cmp.mapping.confirm({
-			behavior = cmp.ConfirmBehavior.Replace,
-		}),
-	}),
-
-	sources = {
-		{ name = "nvim_lsp", max_item_count = 10 },
-		{ name = "luasnip", max_item_count = 10 },
-		{ name = "buffer", max_item_count = 2 },
-	},
-})
-
-cmp.setup.cmdline({ "/", "?" }, {
-	mapping = cmp.mapping.preset.cmdline(),
-
-	sources = {
-		{ name = "buffer" },
-	},
-})
-
-cmp.setup.cmdline(":", {
-	mapping = cmp.mapping.preset.cmdline(),
-
-	sources = cmp.config.sources({
-		{ name = "path" },
-	}, {
-		{ name = "cmdline" },
-	}),
-})
-
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
 nvim_web_devicons.setup()
 
-vim.lsp.config("lua_ls", {
-	capabilities = capabilities,
-	settings = {
-		Lua = {
-			diagnostics = {
-				globals = { "vim", "love" },
-			},
-		},
-	},
-})
-
-vim.lsp.enable({
-	"lua_ls",
-})
-
-nvim_web_devicons.setup()
 local MAX_TS_FILE_SIZE = 300 * 1024
 
 treesitter_configs.setup({
