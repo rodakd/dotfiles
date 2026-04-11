@@ -28,28 +28,52 @@ require("lazy").setup({
 	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
+	"hrsh7th/cmp-nvim-lsp",
+	"hrsh7th/cmp-buffer",
+	"hrsh7th/cmp-path",
+	"hrsh7th/cmp-cmdline",
+	"hrsh7th/nvim-cmp",
+	"L3MON4D3/LuaSnip",
+	"saadparwaiz1/cmp_luasnip",
+	"neovim/nvim-lspconfig",
 	"stevearc/oil.nvim",
+	"nvim-pack/nvim-spectre",
 	"nvim-treesitter/nvim-treesitter-context",
 	"JoosepAlviste/nvim-ts-context-commentstring",
+	"dstein64/nvim-scrollview",
+	"f-person/git-blame.nvim",
 	"stevearc/conform.nvim",
+	"nvim-telescope/telescope-ui-select.nvim",
 	"echasnovski/mini.nvim",
+	"nvim-lualine/lualine.nvim",
+	"onsails/lspkind.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 })
 
+local cmp = require("cmp")
 local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
 local nvim_web_devicons = require("nvim-web-devicons")
+local lspkind = require("lspkind")
+local luasnip = require("luasnip")
 local oil = require("oil")
 local treesitter_context = require("treesitter-context")
+local spectre = require("spectre")
+local gitblame = require("gitblame")
 local conform = require("conform")
 local mini_comment = require("mini.comment")
 local catppuccin = require("catppuccin")
+local lualine = require("lualine")
+
+lualine.setup()
 
 catppuccin.setup({
 	auto_integrations = true,
 })
+
+require("scrollview").setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -61,11 +85,25 @@ conform.setup({
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
-		c = { "clang-format" },
 	},
 
 	format_after_save = {
 		lsp_format = "fallback",
+	},
+})
+
+gitblame.setup({ enabled = false, date_format = "%d-%m-%Y %H:%M:%S" })
+
+spectre.setup({
+	replace_engine = {
+		["sed"] = {
+			cmd = "sed",
+			args = {
+				"-i",
+				"",
+				"-E",
+			},
+		},
 	},
 })
 
@@ -94,7 +132,114 @@ oil.setup({
 	skip_confirm_for_simple_edits = true,
 })
 
+local function border(hl_name)
+	return {
+		{ "╭", hl_name },
+		{ "─", hl_name },
+		{ "╮", hl_name },
+		{ "│", hl_name },
+		{ "╯", hl_name },
+		{ "─", hl_name },
+		{ "╰", hl_name },
+		{ "│", hl_name },
+	}
+end
+
+cmp.setup({
+	formatting = {
+		fields = { "icon", "abbr", "menu", "kind" },
+
+		format = function(entry, vim_item)
+			if vim.tbl_contains({ "path" }, entry.source.name) then
+				local icon, hl_group = nvim_web_devicons.get_icon(entry:get_completion_item().label)
+				if icon then
+					vim_item.kind = " " + icon
+					vim_item.kind_hl_group = hl_group
+				end
+			end
+
+			local fmt =
+				lspkind.cmp_format({ maxwidth = 50, mode = "symbol_text", ellipsis_char = "..." })(entry, vim_item)
+
+			local strings = vim.split(fmt.kind, "%s", { trimempty = true })
+			local kind = strings[2] or strings[1] or ""
+			fmt.kind = " " .. kind .. " "
+			return fmt
+		end,
+	},
+
+	window = {
+		completion = {
+			border = border("CmpBorder"),
+			scrollbar = false,
+		},
+
+		documentation = {
+			border = border("CmpDocBorder"),
+			scrollbar = false,
+		},
+	},
+
+	snippet = {
+		expand = function(args)
+			luasnip.lsp_expand(args.body)
+		end,
+	},
+
+	mapping = cmp.mapping.preset.insert({
+		["<C-u>"] = cmp.mapping.scroll_docs(-4),
+		["<C-d>"] = cmp.mapping.scroll_docs(4),
+		["<C-Space>"] = cmp.mapping.complete(),
+		["<CR>"] = cmp.mapping.confirm({
+			behavior = cmp.ConfirmBehavior.Replace,
+		}),
+	}),
+
+	sources = {
+		{ name = "nvim_lsp", max_item_count = 10 },
+		{ name = "luasnip", max_item_count = 10 },
+		{ name = "buffer", max_item_count = 2 },
+	},
+})
+
+cmp.setup.cmdline({ "/", "?" }, {
+	mapping = cmp.mapping.preset.cmdline(),
+
+	sources = {
+		{ name = "buffer" },
+	},
+})
+
+cmp.setup.cmdline(":", {
+	mapping = cmp.mapping.preset.cmdline(),
+
+	sources = cmp.config.sources({
+		{ name = "path" },
+	}, {
+		{ name = "cmdline" },
+	}),
+})
+
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
 nvim_web_devicons.setup()
+
+vim.lsp.config("lua_ls", {
+	capabilities = capabilities,
+	settings = {
+		Lua = {
+			diagnostics = {
+				globals = { "vim", "love" },
+			},
+		},
+	},
+})
+
+vim.lsp.enable({
+	"lua_ls",
+})
+
+nvim_web_devicons.setup()
+local MAX_TS_FILE_SIZE = 300 * 1024
 
 treesitter_configs.setup({
 	sync_install = false,
@@ -108,7 +253,6 @@ treesitter_configs.setup({
 		disable = function(_, bufnr)
 			local buf_name = vim.api.nvim_buf_get_name(bufnr)
 			local file_size = vim.api.nvim_call_function("getfsize", { buf_name })
-			local MAX_TS_FILE_SIZE = 300 * 1024
 			return file_size > MAX_TS_FILE_SIZE
 		end,
 	},
@@ -155,6 +299,7 @@ telescope.setup({
 	},
 })
 
+telescope.load_extension("ui-select")
 telescope.load_extension("fzf")
 vim.opt.ruler = false
 vim.opt.signcolumn = "yes"
@@ -166,6 +311,7 @@ vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = false
 vim.opt.scrolloff = 8
 vim.o.updatetime = 300
+vim.o.winborder = "rounded"
 vim.opt.isfname:append("@-@")
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -182,11 +328,10 @@ vim.cmd("autocmd BufEnter set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
 vim.cmd("nnoremap <C-i> <Tab> <CR>")
 vim.cmd("nnoremap <C-l> <C-o>")
-vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
+
 vim.cmd(
 	"autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
 )
-vim.cmd("colorscheme catppuccin-mocha")
 
 vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
@@ -195,6 +340,7 @@ vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
+vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
@@ -203,13 +349,47 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
-vim.keymap.set("n", "<leader>w", function()
-	vim.cmd.wall({ bang = true })
-end, opts)
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 
+	callback = function(ev)
+		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+		local opts = { buffer = ev.buf }
+
+		vim.keymap.set("n", "gH", telescope_builtin.highlights, opts)
+		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
+		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
+		vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
+		vim.keymap.set("n", "K", function()
+			vim.lsp.buf.hover({
+				border = "rounded",
+			})
+		end, opts)
+		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
+
+		vim.keymap.set("n", "gR", function()
+			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
+		end, opts)
+
+		vim.keymap.set({ "n", "v" }, "L", function()
+			vim.diagnostic.open_float(0, { scope = "line" })
+		end, opts)
+
+		vim.keymap.set("n", "<C-m>", function()
+			vim.diagnostic.goto_next()
+		end, opts)
+
+		vim.keymap.set("n", "<leader>w", function()
+			vim.cmd.wall({ bang = true })
+		end, opts)
+	end,
+})
+
+vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
 
-local TelescopeColor = {
+local theme = {
 	TelescopeMatching = { fg = colors.flamingo },
 	TelescopeSelection = { fg = colors.text, bg = colors.surface0, bold = true },
 	TelescopePromptPrefix = { bg = colors.base },
@@ -222,21 +402,13 @@ local TelescopeColor = {
 	TelescopePromptTitle = { bg = colors.base, fg = colors.pink },
 	TelescopeResultsTitle = { bg = colors.base, fg = colors.pink },
 	TelescopePreviewTitle = { bg = colors.base, fg = colors.pink },
+	CmpBorder = { fg = "#89b4fb" },
+	CmpDocBorder = { fg = "#89b4fb" },
+	FloatBorder = { fg = "#89b4fb", bg = nil },
 }
 
-for hl, col in pairs(TelescopeColor) do
+for hl, col in pairs(theme) do
 	vim.api.nvim_set_hl(0, hl, col)
 end
 
-vim.keymap.set({ "n", "v" }, "gd", function()
-	vim.cmd('noau normal! "vy"')
-	local text = vim.fn.getreg("v")
-	vim.fn.setreg("v", {})
-	text = string.gsub(text, "\n", "")
-
-	if #text <= 0 then
-		text = vim.fn.expand("<cword>")
-	end
-
-	telescope_builtin.live_grep({ default_text = text })
-end, {})
+vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
