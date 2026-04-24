@@ -58,6 +58,7 @@ conform.setup({
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
+		c = { "clang-format" },
 	},
 })
 
@@ -145,13 +146,13 @@ telescope.setup({
 
 telescope.load_extension("fzf")
 vim.opt.ruler = false
-vim.opt.signcolumn = "yes"
+vim.opt.signcolumn = "no"
 vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
 vim.opt.guicursor = "n-v-c-i:block"
-vim.opt.cursorline = false
+vim.opt.cursorline = true
 vim.opt.scrolloff = 8
 vim.o.updatetime = 300
 vim.o.winborder = "rounded"
