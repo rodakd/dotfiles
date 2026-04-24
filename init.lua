@@ -18,7 +18,13 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+local dotfiles_dir = vim.fn.fnamemodify(vim.fn.resolve(vim.env.MYVIMRC or ""), ":h")
+
 require("lazy").setup({
+	{
+		dir = dotfiles_dir .. "/plugins/hello.nvim",
+		name = "hello.nvim",
+	},
 	"tpope/vim-sleuth",
 	"nvim-treesitter/nvim-treesitter",
 	"nvim-lua/plenary.nvim",
@@ -50,6 +56,11 @@ catppuccin.setup({
 
 conform.setup({
 	notify_on_error = false,
+
+	format_on_save = {
+		timeout_ms = 500,
+		lsp_format = "fallback",
+	},
 
 	formatters_by_ft = {
 		lua = { "stylua" },
@@ -166,6 +177,7 @@ vim.opt.autoindent = true
 vim.opt.autoread = true
 vim.opt.showmode = false
 vim.opt.laststatus = 0
+vim.opt.wrap = false
 
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd BufEnter set filetype=groovy")
@@ -205,6 +217,14 @@ vim.keymap.set({ "n", "v" }, "gd", function()
 
 	telescope_builtin.live_grep({ default_text = text })
 end, {})
+
+vim.api.nvim_create_user_command("RunModule", function(opts)
+	local mod = opts.args
+	require("plenary.reload").reload_module(mod)
+	require(mod)
+	local cmd = mod:sub(1, 1):upper() .. mod:sub(2)
+	vim.cmd(cmd)
+end, { nargs = 1 })
 
 vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
