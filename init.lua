@@ -21,10 +21,7 @@ vim.g.maplocalleader = "\\"
 local dotfiles_dir = vim.fn.fnamemodify(vim.fn.resolve(vim.env.MYVIMRC or ""), ":h")
 
 require("lazy").setup({
-	{
-		dir = dotfiles_dir .. "/plugins/hello.nvim",
-		name = "hello.nvim",
-	},
+	"rodakd/terms.nvim",
 	"tpope/vim-sleuth",
 	"nvim-treesitter/nvim-treesitter",
 	"nvim-lua/plenary.nvim",
@@ -49,6 +46,7 @@ local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
 local catppuccin = require("catppuccin")
+local terms = require("terms")
 
 catppuccin.setup({
 	auto_integrations = true,
@@ -139,7 +137,7 @@ telescope.setup({
 			height = 0.99,
 			preview_cutoff = 10,
 			prompt_position = "bottom",
-			width = 0.99,
+			width = 0.92,
 		},
 
 		mappings = {
@@ -204,6 +202,38 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
+vim.keymap.set("n", "<C-1>", function()
+	terms.toggle({ cmd = "claude", name = "claude" })
+end)
+
+vim.keymap.set("x", "<C-1>", function()
+	terms.send_selection({ cmd = "claude", name = "claude" })
+end)
+
+vim.keymap.set("n", "<C-2>", function()
+	terms.toggle({ cmd = "lazygit", name = "lazygit" })
+end)
+
+vim.keymap.set("n", "<C-3>", function()
+	terms.toggle({ cmd = "zsh", name = "zsh" })
+end)
+
+vim.keymap.set("n", "<C-4>", function()
+	terms.toggle({ cmd = "zsh", name = "zsh 2" })
+end)
+
+vim.keymap.set("n", "<C-5>", function()
+	terms.toggle({ cmd = "zsh", name = "zsh 3" })
+end)
+
+vim.keymap.set("n", "<C-6>", function()
+	terms.toggle({ cmd = "zsh", name = "zsh 4" })
+end)
+
+vim.keymap.set("n", "<C-7>", function()
+	terms.toggle({ cmd = "zsh", name = "zsh 5" })
+end)
+
 vim.keymap.set({ "n", "v" }, "gd", function()
 	vim.cmd('noau normal! "vy"')
 	local text = vim.fn.getreg("v")
@@ -217,16 +247,10 @@ vim.keymap.set({ "n", "v" }, "gd", function()
 	telescope_builtin.live_grep({ default_text = text })
 end, {})
 
-vim.api.nvim_create_user_command("RunModule", function(opts)
-	local mod = opts.args
-	require("plenary.reload").reload_module(mod)
-	require(mod)
-	local cmd = mod:sub(1, 1):upper() .. mod:sub(2)
-	vim.cmd(cmd)
-end, { nargs = 1 })
-
 vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
+
+local border_color = "#89b4fb"
 
 local theme = {
 	TelescopeMatching = { fg = colors.flamingo },
@@ -235,14 +259,12 @@ local theme = {
 	TelescopePromptNormal = { bg = colors.base },
 	TelescopeResultsNormal = { bg = colors.base },
 	TelescopePreviewNormal = { bg = colors.base },
-	TelescopePromptBorder = { bg = colors.base, fg = colors.pink },
-	TelescopeResultsBorder = { bg = colors.base, fg = colors.pink },
-	TelescopePreviewBorder = { bg = colors.base, fg = colors.pink },
-	TelescopePromptTitle = { bg = colors.base, fg = colors.pink },
-	TelescopeResultsTitle = { bg = colors.base, fg = colors.pink },
-	TelescopePreviewTitle = { bg = colors.base, fg = colors.pink },
-	CmpBorder = { fg = "#89b4fb" },
-	CmpDocBorder = { fg = "#89b4fb" },
+	TelescopePromptBorder = { bg = colors.base, fg = border_color },
+	TelescopeResultsBorder = { bg = colors.base, fg = border_color },
+	TelescopePreviewBorder = { bg = colors.base, fg = border_color },
+	TelescopePromptTitle = { bg = colors.base, fg = border_color },
+	TelescopeResultsTitle = { bg = colors.base, fg = border_color },
+	TelescopePreviewTitle = { bg = colors.base, fg = border_color },
 	FloatBorder = { fg = "#89b4fb", bg = nil },
 }
 
