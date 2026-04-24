@@ -177,7 +177,6 @@ vim.opt.autoindent = true
 vim.opt.autoread = true
 vim.opt.showmode = false
 vim.opt.laststatus = 0
-vim.opt.wrap = false
 
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd BufEnter set filetype=groovy")
