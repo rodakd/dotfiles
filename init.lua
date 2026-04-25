@@ -179,8 +179,8 @@ vim.opt.laststatus = 0
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd BufEnter set filetype=groovy")
 vim.cmd("autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>")
-vim.cmd("nnoremap <C-i> <Tab> <CR>")
-vim.cmd("nnoremap <C-l> <C-o>")
+vim.cmd("nnoremap <C-o> <C-i>")
+vim.cmd("nnoremap <C-i> <C-o>")
 
 vim.cmd(
 	"autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
@@ -188,8 +188,84 @@ vim.cmd(
 
 vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
-vim.keymap.set("n", "<C-p>", telescope_builtin.git_files, {})
-vim.keymap.set("n", "<C-o>", telescope_builtin.oldfiles, {})
+
+vim.keymap.set("n", "<C-p>", function()
+	local pickers = require("telescope.pickers")
+	local finders = require("telescope.finders")
+	local conf = require("telescope.config").values
+	local make_entry = require("telescope.make_entry")
+
+	local cwd = vim.fn.getcwd()
+	local git_root = vim.fn.systemlist({ "git", "-C", cwd, "rev-parse", "--show-toplevel" })[1]
+	if vim.v.shell_error ~= 0 then
+		vim.notify("Not a git repo", vim.log.levels.ERROR)
+		return
+	end
+
+	local files = vim.fn.systemlist({
+		"git",
+		"-C",
+		git_root,
+		"ls-files",
+		"--cached",
+		"--others",
+		"--exclude-standard",
+	})
+
+	local rank = {}
+	local order = 0
+
+	local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+	table.sort(bufs, function(a, b)
+		return a.lastused > b.lastused
+	end)
+	for _, b in ipairs(bufs) do
+		if b.name ~= "" then
+			local rel = vim.fn.fnamemodify(b.name, ":.")
+			if not rank[rel] then
+				order = order + 1
+				rank[rel] = order
+			end
+		end
+	end
+
+	for _, f in ipairs(vim.v.oldfiles) do
+		local rel = vim.fn.fnamemodify(f, ":.")
+		if not rank[rel] then
+			order = order + 1
+			rank[rel] = order
+		end
+	end
+
+	table.sort(files, function(a, b)
+		local ra = rank[a]
+		local rb = rank[b]
+		if ra and rb then
+			return ra < rb
+		end
+		if ra and not rb then
+			return true
+		end
+		if rb and not ra then
+			return false
+		end
+		return a < b
+	end)
+
+	pickers
+		.new({}, {
+			prompt_title = "Files",
+			cwd = git_root,
+			finder = finders.new_table({
+				results = files,
+				entry_maker = make_entry.gen_from_file({ cwd = git_root }),
+			}),
+			sorter = conf.file_sorter({}),
+			previewer = conf.file_previewer({ cwd = git_root }),
+		})
+		:find()
+end, {})
+
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
