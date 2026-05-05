@@ -64,6 +64,8 @@ conform.setup({
 		lua = { "stylua" },
 		javascript = { "prettierd" },
 		json = { "prettierd" },
+		css = { "prettierd" },
+		scss = { "prettierd" },
 		javascriptreact = { "prettierd" },
 		typescript = { "prettierd" },
 		typescriptreact = { "prettierd" },
@@ -186,7 +188,6 @@ vim.cmd(
 	"autocmd BufRead,BufNewFile */templates/*.{yaml,yml},*/templates/*.tpl,*.gotmpl,helmfile*.{yaml,yml} set ft=helm"
 )
 
-vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 
 vim.keymap.set("n", "<C-p>", function()
@@ -267,7 +268,6 @@ vim.keymap.set("n", "<C-p>", function()
 end, {})
 
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
-vim.keymap.set("n", "<C-h>", telescope_builtin.help_tags, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
@@ -278,37 +278,57 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
-vim.keymap.set("n", "<C-1>", function()
-	terms.toggle({ cmd = "claude", name = "claude" })
+local agent = "opencode"
+-- local agent = "claude"
+
+vim.keymap.set("n", "<leader>1", function()
+	terms.toggle({ cmd = agent, name = agent })
 end)
 
-vim.keymap.set("x", "<C-1>", function()
-	terms.send_selection({ cmd = "claude", name = "claude" })
+vim.keymap.set("x", "<leader>1", function()
+	terms.send_selection({ cmd = agent, name = agent })
 end)
 
-vim.keymap.set("n", "<C-2>", function()
+vim.keymap.set("n", "<leader>2", function()
 	terms.toggle({ cmd = "lazygit", name = "lazygit" })
 end)
 
-vim.keymap.set("n", "<C-3>", function()
+vim.keymap.set("n", "<leader>3", function()
 	terms.toggle({ cmd = "zsh", name = "zsh" })
 end)
 
-vim.keymap.set("n", "<C-4>", function()
+vim.keymap.set("n", "<leader>4", function()
 	terms.toggle({ cmd = "zsh", name = "zsh 2" })
 end)
 
-vim.keymap.set("n", "<C-5>", function()
+vim.keymap.set("n", "<leader>5", function()
 	terms.toggle({ cmd = "zsh", name = "zsh 3" })
 end)
 
-vim.keymap.set("n", "<C-6>", function()
+vim.keymap.set("n", "<leader>6", function()
 	terms.toggle({ cmd = "zsh", name = "zsh 4" })
 end)
 
-vim.keymap.set("n", "<C-7>", function()
+vim.keymap.set("n", "<leader>7", function()
 	terms.toggle({ cmd = "zsh", name = "zsh 5" })
 end)
+
+vim.keymap.set("n", "<leader>b", function()
+	local current_line = vim.fn.line(".")
+	local file = vim.fn.expand("%:p")
+	local result = vim.fn.systemlist({ "git", "blame", file })
+	if vim.v.shell_error ~= 0 then
+		vim.notify("git blame failed", vim.log.levels.ERROR)
+		return
+	end
+	vim.cmd("vnew")
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, result)
+	vim.bo.buftype = "nofile"
+	vim.bo.bufhidden = "wipe"
+	vim.api.nvim_buf_set_name(0, "git blame")
+	vim.api.nvim_win_set_cursor(0, { current_line, 0 })
+	vim.cmd("normal! zz")
+end, {})
 
 vim.keymap.set({ "n", "v" }, "gd", function()
 	vim.cmd('noau normal! "vy"')
