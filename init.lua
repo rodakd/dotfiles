@@ -346,6 +346,13 @@ vim.keymap.set("n", "<leader>b", function()
 	vim.cmd("normal! zz")
 end, {})
 
+vim.keymap.set("x", "gd", function()
+	local mode = vim.fn.mode()
+	local t = mode == "V" and "V" or "v"
+	local text = table.concat(vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = t }), " ")
+	telescope_builtin.live_grep({ default_text = text })
+end, {})
+
 vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
 local border_color = "#89b4fb"
