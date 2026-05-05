@@ -18,12 +18,11 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
-local dotfiles_dir = vim.fn.fnamemodify(vim.fn.resolve(vim.env.MYVIMRC or ""), ":h")
-
 require("lazy").setup({
 	"rodakd/terms.nvim",
 	"tpope/vim-sleuth",
 	"nvim-treesitter/nvim-treesitter",
+	"neovim/nvim-lspconfig",
 	"nvim-lua/plenary.nvim",
 	{
 		"nvim-telescope/telescope-fzf-native.nvim",
@@ -35,6 +34,23 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+	{
+		"saghen/blink.cmp",
+		version = "1.*",
+
+		opts = {
+			keymap = { preset = "enter", ["<C-e>"] = { "show" } },
+			completion = {
+				list = {
+					selection = {
+						preselect = false,
+					},
+				},
+			},
+		},
+
+		opts_extend = { "sources.default" },
+	},
 })
 
 local treesitter_configs = require("nvim-treesitter.configs")
@@ -268,6 +284,7 @@ end, {})
 
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
+vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
@@ -329,22 +346,8 @@ vim.keymap.set("n", "<leader>b", function()
 	vim.cmd("normal! zz")
 end, {})
 
-vim.keymap.set({ "n", "v" }, "gd", function()
-	vim.cmd('noau normal! "vy"')
-	local text = vim.fn.getreg("v")
-	vim.fn.setreg("v", {})
-	text = string.gsub(text, "\n", "")
-
-	if #text <= 0 then
-		text = vim.fn.expand("<cword>")
-	end
-
-	telescope_builtin.live_grep({ default_text = text })
-end, {})
-
 vim.cmd("colorscheme catppuccin-mocha")
 local colors = require("catppuccin.palettes").get_palette()
-
 local border_color = "#89b4fb"
 
 local theme = {
@@ -368,3 +371,49 @@ for hl, col in pairs(theme) do
 end
 
 vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
+vim.lsp.enable("vtsls")
+vim.lsp.enable("jsonls")
+vim.lsp.enable("cssls")
+
+vim.lsp.config.lua_ls = {
+	settings = {
+		Lua = {
+			diagnostics = {
+				globals = { "vim", "love" },
+			},
+		},
+	},
+}
+vim.lsp.enable("lua_ls")
+
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+
+	callback = function(ev)
+		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+		local opts = { buffer = ev.buf }
+
+		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
+		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
+		vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
+		vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
+
+		vim.keymap.set("n", "gR", function()
+			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
+		end, opts)
+
+		vim.keymap.set({ "n", "v" }, "L", function()
+			vim.diagnostic.open_float(0, { scope = "line" })
+		end, opts)
+
+		vim.keymap.set("n", "<C-m>", function()
+			vim.diagnostic.goto_next({ float = false, severity = "error" })
+		end, opts)
+
+		vim.keymap.set("n", "<leader>w", function()
+			vim.cmd.wall({ bang = true })
+		end, opts)
+	end,
+})
