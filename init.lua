@@ -33,13 +33,14 @@ require("lazy").setup({
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
+	"nvim-lualine/lualine.nvim",
 	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
 
 		opts = {
-			keymap = { preset = "enter", ["<C-e>"] = { "show" } },
+			keymap = { preset = "enter", ["<C-e>"] = { "show", "show_documentation", "hide_documentation" } },
 			completion = {
 				list = {
 					selection = {
@@ -63,6 +64,18 @@ local spectre = require("spectre")
 local conform = require("conform")
 local catppuccin = require("catppuccin")
 local terms = require("terms")
+local lualine = require("lualine")
+
+lualine.setup({
+	sections = {
+		lualine_a = { "mode" },
+		lualine_b = { "branch" },
+		lualine_c = { "filename" },
+		lualine_x = { "filetype" },
+		lualine_y = { "progress" },
+		lualine_z = { "location" },
+	},
+})
 
 catppuccin.setup({
 	auto_integrations = true,
@@ -206,13 +219,8 @@ vim.cmd(
 vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 
 vim.keymap.set("n", "<C-p>", function()
-	local pickers = require("telescope.pickers")
-	local finders = require("telescope.finders")
-	local conf = require("telescope.config").values
-	local make_entry = require("telescope.make_entry")
+	local git_root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
 
-	local cwd = vim.fn.getcwd()
-	local git_root = vim.fn.systemlist({ "git", "-C", cwd, "rev-parse", "--show-toplevel" })[1]
 	if vim.v.shell_error ~= 0 then
 		vim.notify("Not a git repo", vim.log.levels.ERROR)
 		return
@@ -228,9 +236,12 @@ vim.keymap.set("n", "<C-p>", function()
 		"--exclude-standard",
 	})
 
-	local rank = {}
-	local order = 0
+	local file_set = {}
+	for _, f in ipairs(files) do
+		file_set[f] = true
+	end
 
+	local rank, n = {}, 0
 	local bufs = vim.fn.getbufinfo({ buflisted = 1 })
 	table.sort(bufs, function(a, b)
 		return a.lastused > b.lastused
@@ -238,49 +249,50 @@ vim.keymap.set("n", "<C-p>", function()
 	for _, b in ipairs(bufs) do
 		if b.name ~= "" then
 			local rel = vim.fn.fnamemodify(b.name, ":.")
-			if not rank[rel] then
-				order = order + 1
-				rank[rel] = order
+			if not rank[rel] and file_set[rel] then
+				n = n + 1
+				rank[rel] = n
 			end
 		end
 	end
 
 	for _, f in ipairs(vim.v.oldfiles) do
 		local rel = vim.fn.fnamemodify(f, ":.")
-		if not rank[rel] then
-			order = order + 1
-			rank[rel] = order
+		if not rank[rel] and file_set[rel] then
+			n = n + 1
+			rank[rel] = n
 		end
 	end
 
 	table.sort(files, function(a, b)
-		local ra = rank[a]
-		local rb = rank[b]
+		local ra, rb = rank[a], rank[b]
 		if ra and rb then
 			return ra < rb
 		end
-		if ra and not rb then
+		if ra then
 			return true
 		end
-		if rb and not ra then
+		if rb then
 			return false
 		end
 		return a < b
 	end)
 
-	pickers
+	local conf = require("telescope.config").values
+
+	require("telescope.pickers")
 		.new({}, {
 			prompt_title = "Files",
 			cwd = git_root,
-			finder = finders.new_table({
+			finder = require("telescope.finders").new_table({
 				results = files,
-				entry_maker = make_entry.gen_from_file({ cwd = git_root }),
+				entry_maker = require("telescope.make_entry").gen_from_file({ cwd = git_root }),
 			}),
 			sorter = conf.file_sorter({}),
 			previewer = conf.file_previewer({ cwd = git_root }),
 		})
 		:find()
-end, {})
+end)
 
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
