@@ -237,9 +237,14 @@ vim.keymap.set("n", "<C-p>", function()
 	})
 
 	local file_set = {}
+	local deduped = {}
 	for _, f in ipairs(files) do
-		file_set[f] = true
+		if not file_set[f] then
+			file_set[f] = true
+			deduped[#deduped + 1] = f
+		end
 	end
+	files = deduped
 
 	local rank, n = {}, 0
 	local bufs = vim.fn.getbufinfo({ buflisted = 1 })
