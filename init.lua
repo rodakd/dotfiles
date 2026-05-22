@@ -246,6 +246,17 @@ vim.keymap.set("n", "<C-p>", function()
 	end
 	files = deduped
 
+	for _, f in ipairs(vim.v.oldfiles) do
+		local abs = vim.fn.fnamemodify(f, ":p")
+		if vim.startswith(abs, git_root .. "/") and vim.fn.filereadable(abs) == 1 then
+			local rel = abs:sub(#git_root + 2)
+			if not file_set[rel] then
+				file_set[rel] = true
+				files[#files + 1] = rel
+			end
+		end
+	end
+
 	local rank, n = {}, 0
 	local bufs = vim.fn.getbufinfo({ buflisted = 1 })
 	table.sort(bufs, function(a, b)
@@ -311,8 +322,8 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
-local agent = "opencode"
--- local agent = "claude"
+-- local agent = "opencode"
+local agent = "claude"
 
 vim.keymap.set("n", "<leader>1", function()
 	terms.toggle({ cmd = agent, name = agent })
@@ -395,9 +406,9 @@ for hl, col in pairs(theme) do
 end
 
 vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
-vim.lsp.enable("vtsls")
 vim.lsp.enable("jsonls")
 vim.lsp.enable("cssls")
+vim.lsp.enable("pyright")
 
 vim.lsp.config.lua_ls = {
 	settings = {
@@ -409,6 +420,17 @@ vim.lsp.config.lua_ls = {
 	},
 }
 vim.lsp.enable("lua_ls")
+
+-- vim.lsp.config.vtsls = {
+-- 	typescript = {
+-- 		tsserver = {
+-- 			maxTsServerMemory = 6144,
+-- 		},
+-- 	},
+-- }
+-- vim.lsp.enable("vtsls")
+--
+vim.lsp.enable("tsgo")
 
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
