@@ -14,4 +14,7 @@ alias xclip="xclip -selection clipboard"
 alias watch="watch -c -n 1"
 alias klog="stern -t"
 alias ports="lsof -nP -iTCP -sTCP:LISTEN"
+alias dp1="cd ~/repos/diploma-platform/"
+alias dp2="cd ~/repos/diploma-platform2/"
+alias dp3="cd ~/repos/diploma-platform3/"
 kns() { kubectl config set-context --current --namespace="$1" }

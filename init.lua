@@ -21,7 +21,6 @@ vim.g.maplocalleader = "\\"
 require("lazy").setup({
 	"rodakd/terms.nvim",
 	"tpope/vim-sleuth",
-	"nvim-treesitter/nvim-treesitter",
 	"neovim/nvim-lspconfig",
 	"nvim-lua/plenary.nvim",
 	{
@@ -34,7 +33,6 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
 	"nvim-lualine/lualine.nvim",
-	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -52,9 +50,22 @@ require("lazy").setup({
 
 		opts_extend = { "sources.default" },
 	},
+	{
+		"Tsuzat/NeoSolarized.nvim",
+		lazy = false,
+		priority = 1000,
+		config = function()
+			require("NeoSolarized").setup({
+				style = "light",
+				transparent = false,
+				terminal_colors = true,
+				enable_italics = false,
+			})
+			vim.cmd.colorscheme("NeoSolarized")
+		end,
+	},
 })
 
-local treesitter_configs = require("nvim-treesitter.configs")
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
@@ -62,7 +73,6 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
-local catppuccin = require("catppuccin")
 local terms = require("terms")
 local lualine = require("lualine")
 
@@ -75,10 +85,6 @@ lualine.setup({
 		lualine_y = { "progress" },
 		lualine_z = { "location" },
 	},
-})
-
-catppuccin.setup({
-	auto_integrations = true,
 })
 
 conform.setup({
@@ -128,25 +134,6 @@ oil.setup({
 })
 
 nvim_web_devicons.setup()
-
-local MAX_TS_FILE_SIZE = 300 * 1024
-
-treesitter_configs.setup({
-	sync_install = false,
-	auto_install = true,
-
-	highlight = {
-		enable = true,
-		additional_vim_regex_highlighting = false,
-		use_languagetree = false,
-
-		disable = function(_, bufnr)
-			local buf_name = vim.api.nvim_buf_get_name(bufnr)
-			local file_size = vim.api.nvim_call_function("getfsize", { buf_name })
-			return file_size > MAX_TS_FILE_SIZE
-		end,
-	},
-})
 
 telescope.setup({
 	defaults = {
@@ -205,6 +192,13 @@ vim.opt.autoindent = true
 vim.opt.autoread = true
 vim.opt.showmode = false
 vim.opt.laststatus = 0
+vim.o.termguicolors = true
+vim.o.background = "light"
+
+vim.api.nvim_create_autocmd(
+	{ "FileChangedShellPost" },
+	{ command = 'echohl WarningMsg | echo "File changed on disk. Buffer reloaded." | echohl None', pattern = { "*" } }
+)
 
 vim.cmd("autocmd BufRead,BufNewFile Jenkinsfile* set filetype=groovy")
 vim.cmd("autocmd BufEnter set filetype=groovy")
@@ -322,39 +316,15 @@ vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
 
--- local agent = "opencode"
-local agent = "claude"
+local agent = "opencode"
+-- local agent = "claude"
 
-vim.keymap.set("n", "<leader>1", function()
+vim.keymap.set("n", "<C-q>", function()
 	terms.toggle({ cmd = agent, name = agent })
 end)
 
-vim.keymap.set("x", "<leader>1", function()
+vim.keymap.set("x", "<C-q>", function()
 	terms.send_selection({ cmd = agent, name = agent })
-end)
-
-vim.keymap.set("n", "<leader>2", function()
-	terms.toggle({ cmd = "lazygit", name = "lazygit" })
-end)
-
-vim.keymap.set("n", "<leader>3", function()
-	terms.toggle({ cmd = "zsh", name = "zsh" })
-end)
-
-vim.keymap.set("n", "<leader>4", function()
-	terms.toggle({ cmd = "zsh", name = "zsh 2" })
-end)
-
-vim.keymap.set("n", "<leader>5", function()
-	terms.toggle({ cmd = "zsh", name = "zsh 3" })
-end)
-
-vim.keymap.set("n", "<leader>6", function()
-	terms.toggle({ cmd = "zsh", name = "zsh 4" })
-end)
-
-vim.keymap.set("n", "<leader>7", function()
-	terms.toggle({ cmd = "zsh", name = "zsh 5" })
 end)
 
 vim.keymap.set("n", "<leader>b", function()
@@ -381,31 +351,6 @@ vim.keymap.set("x", "gd", function()
 	telescope_builtin.live_grep({ default_text = text })
 end, {})
 
-vim.cmd("colorscheme catppuccin-mocha")
-local colors = require("catppuccin.palettes").get_palette()
-local border_color = "#89b4fb"
-
-local theme = {
-	TelescopeMatching = { fg = colors.flamingo },
-	TelescopeSelection = { fg = colors.text, bg = colors.surface0, bold = true },
-	TelescopePromptPrefix = { bg = colors.base },
-	TelescopePromptNormal = { bg = colors.base },
-	TelescopeResultsNormal = { bg = colors.base },
-	TelescopePreviewNormal = { bg = colors.base },
-	TelescopePromptBorder = { bg = colors.base, fg = border_color },
-	TelescopeResultsBorder = { bg = colors.base, fg = border_color },
-	TelescopePreviewBorder = { bg = colors.base, fg = border_color },
-	TelescopePromptTitle = { bg = colors.base, fg = border_color },
-	TelescopeResultsTitle = { bg = colors.base, fg = border_color },
-	TelescopePreviewTitle = { bg = colors.base, fg = border_color },
-	FloatBorder = { fg = "#89b4fb", bg = nil },
-}
-
-for hl, col in pairs(theme) do
-	vim.api.nvim_set_hl(0, hl, col)
-end
-
-vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
 vim.lsp.enable("jsonls")
 vim.lsp.enable("cssls")
 vim.lsp.enable("pyright")
@@ -463,3 +408,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end, opts)
 	end,
 })
+
+vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
+vim.api.nvim_set_hl(0, "LineNr", { bg = "NONE", fg = "#657B83" })
+vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE" })
+vim.api.nvim_set_hl(0, "Visual", { bg = "#d3c6aa", fg = "NONE" })
