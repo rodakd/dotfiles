@@ -32,7 +32,6 @@ require("lazy").setup({
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
-	"nvim-lualine/lualine.nvim",
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -51,16 +50,12 @@ require("lazy").setup({
 		opts_extend = { "sources.default" },
 	},
 	{
-		"Tsuzat/NeoSolarized.nvim",
+		"overcache/NeoSolarized",
 		lazy = false,
 		priority = 1000,
 		config = function()
-			require("NeoSolarized").setup({
-				style = "light",
-				transparent = false,
-				terminal_colors = true,
-				enable_italics = false,
-			})
+			vim.cmd("let g:neosolarized_contrast = 'high'")
+			vim.cmd("let g:neosolarized_bold = 0")
 			vim.cmd.colorscheme("NeoSolarized")
 		end,
 	},
@@ -74,18 +69,6 @@ local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
 local terms = require("terms")
-local lualine = require("lualine")
-
-lualine.setup({
-	sections = {
-		lualine_a = { "mode" },
-		lualine_b = { "branch" },
-		lualine_c = { "filename" },
-		lualine_x = { "filetype" },
-		lualine_y = { "progress" },
-		lualine_z = { "location" },
-	},
-})
 
 conform.setup({
 	notify_on_error = false,
