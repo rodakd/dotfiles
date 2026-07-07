@@ -55,6 +55,27 @@ require("lazy").setup({
 			vim.cmd.colorscheme("NeoSolarized")
 		end,
 	},
+	{
+		"nvim-treesitter/nvim-treesitter",
+		lazy = false,
+		build = ":TSUpdate",
+		config = function()
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
+					local treesitter = require("nvim-treesitter")
+					local lang = vim.treesitter.language.get_lang(args.match)
+					if not lang then return end
+					local available = treesitter.get_available()
+					if not vim.tbl_contains(available, lang) then return end
+					local installed = treesitter.get_installed()
+					if not vim.tbl_contains(installed, lang) then
+						treesitter.install(lang):wait()
+					end
+					vim.treesitter.start()
+				end,
+			})
+		end,
+	},
 })
 
 local telescope = require("telescope")
