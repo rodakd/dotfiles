@@ -1,2 +1,0 @@
-#!/bin/bash
-set_default_audio_device "HyperX"

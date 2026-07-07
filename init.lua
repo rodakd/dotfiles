@@ -6,7 +6,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	if vim.v.shell_error ~= 0 then
 		vim.api.nvim_echo({
 			{ "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-			{ out, "WarningMsg" },
+			{ out,                            "WarningMsg" },
 			{ "\nPress any key to exit..." },
 		}, true, {})
 		vim.fn.getchar()
@@ -19,19 +19,15 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 require("lazy").setup({
-	"rodakd/terms.nvim",
 	"tpope/vim-sleuth",
 	"neovim/nvim-lspconfig",
 	"nvim-lua/plenary.nvim",
-	{
-		"nvim-telescope/telescope-fzf-native.nvim",
-		build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build --config Release",
-	},
 	"nvim-telescope/telescope.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"stevearc/oil.nvim",
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
+	"dstein64/nvim-scrollview",
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -68,7 +64,9 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
-local terms = require("terms")
+local scrollview = require('scrollview')
+
+scrollview.setup()
 
 conform.setup({
 	notify_on_error = false,
@@ -153,7 +151,6 @@ telescope.setup({
 	},
 })
 
-telescope.load_extension("fzf")
 vim.opt.ruler = false
 vim.opt.signcolumn = "no"
 vim.opt.nu = true
@@ -198,9 +195,28 @@ vim.keymap.set("n", "<C-s>", telescope_builtin.git_status, {})
 vim.keymap.set("n", "<C-p>", function()
 	local git_root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
 
-	if vim.v.shell_error ~= 0 then
+	if vim.v.shell_error ~= 0 or not git_root or git_root == "" then
 		vim.notify("Not a git repo", vim.log.levels.ERROR)
 		return
+	end
+
+	git_root = vim.fs.normalize(git_root)
+
+	local function normalize(path)
+		return vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+	end
+
+	local function rel_to_root(path)
+		local abs = normalize(path)
+		local prefix = git_root .. "/"
+		if vim.startswith(abs, prefix) then
+			return abs:sub(#prefix + 1)
+		end
+		return nil
+	end
+
+	local function is_real_file(path)
+		return vim.fn.filereadable(path) == 1
 	end
 
 	local files = vim.fn.systemlist({
@@ -215,45 +231,56 @@ vim.keymap.set("n", "<C-p>", function()
 
 	local file_set = {}
 	local deduped = {}
+
 	for _, f in ipairs(files) do
-		if not file_set[f] then
+		local abs = normalize(git_root .. "/" .. f)
+		if is_real_file(abs) and not file_set[f] then
 			file_set[f] = true
 			deduped[#deduped + 1] = f
 		end
 	end
+
 	files = deduped
 
 	for _, f in ipairs(vim.v.oldfiles) do
-		local abs = vim.fn.fnamemodify(f, ":p")
-		if vim.startswith(abs, git_root .. "/") and vim.fn.filereadable(abs) == 1 then
-			local rel = abs:sub(#git_root + 2)
-			if not file_set[rel] then
-				file_set[rel] = true
-				files[#files + 1] = rel
-			end
+		local abs = normalize(f)
+		local rel = rel_to_root(abs)
+		if rel and is_real_file(abs) and not file_set[rel] then
+			file_set[rel] = true
+			files[#files + 1] = rel
 		end
 	end
 
-	local rank, n = {}, 0
+	local rank = {}
+	local n = 0
+
+	local function add_rank(rel)
+		if rel and file_set[rel] and not rank[rel] then
+			n = n + 1
+			rank[rel] = n
+		end
+	end
+
 	local bufs = vim.fn.getbufinfo({ buflisted = 1 })
 	table.sort(bufs, function(a, b)
-		return a.lastused > b.lastused
+		return (a.lastused or 0) > (b.lastused or 0)
 	end)
+
 	for _, b in ipairs(bufs) do
-		if b.name ~= "" then
-			local rel = vim.fn.fnamemodify(b.name, ":.")
-			if not rank[rel] and file_set[rel] then
-				n = n + 1
-				rank[rel] = n
+		if b.name and b.name ~= "" then
+			local abs = normalize(b.name)
+			local rel = rel_to_root(abs)
+			if rel and is_real_file(abs) then
+				add_rank(rel)
 			end
 		end
 	end
 
 	for _, f in ipairs(vim.v.oldfiles) do
-		local rel = vim.fn.fnamemodify(f, ":.")
-		if not rank[rel] and file_set[rel] then
-			n = n + 1
-			rank[rel] = n
+		local abs = normalize(f)
+		local rel = rel_to_root(abs)
+		if rel and is_real_file(abs) then
+			add_rank(rel)
 		end
 	end
 
@@ -273,18 +300,16 @@ vim.keymap.set("n", "<C-p>", function()
 
 	local conf = require("telescope.config").values
 
-	require("telescope.pickers")
-		.new({}, {
-			prompt_title = "Files",
-			cwd = git_root,
-			finder = require("telescope.finders").new_table({
-				results = files,
-				entry_maker = require("telescope.make_entry").gen_from_file({ cwd = git_root }),
-			}),
-			sorter = conf.file_sorter({}),
-			previewer = conf.file_previewer({ cwd = git_root }),
-		})
-		:find()
+	require("telescope.pickers").new({}, {
+		prompt_title = "Files",
+		cwd = git_root,
+		finder = require("telescope.finders").new_table({
+			results = files,
+			entry_maker = require("telescope.make_entry").gen_from_file({ cwd = git_root }),
+		}),
+		sorter = conf.file_sorter({}),
+		previewer = conf.file_previewer({ cwd = git_root }),
+	}):find()
 end)
 
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
@@ -298,17 +323,6 @@ vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
 vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
 end, {})
-
-local agent = "opencode"
--- local agent = "claude"
-
-vim.keymap.set("n", "<C-q>", function()
-	terms.toggle({ cmd = agent, name = agent })
-end)
-
-vim.keymap.set("x", "<C-q>", function()
-	terms.send_selection({ cmd = agent, name = agent })
-end)
 
 vim.keymap.set("n", "<leader>b", function()
 	local current_line = vim.fn.line(".")
@@ -349,15 +363,12 @@ vim.lsp.config.lua_ls = {
 }
 vim.lsp.enable("lua_ls")
 
--- vim.lsp.config.vtsls = {
--- 	typescript = {
--- 		tsserver = {
--- 			maxTsServerMemory = 6144,
--- 		},
--- 	},
--- }
--- vim.lsp.enable("vtsls")
---
+vim.lsp.config('clangd', {
+	cmd = { 'clangd', '--background-index', '--clang-tidy' },
+	filetypes = { 'c', 'h', 'cpp', 'hpp' },
+})
+
+vim.lsp.enable('clangd')
 vim.lsp.enable("tsgo")
 
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -370,7 +381,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, opts)
 		vim.keymap.set("n", "gt", telescope_builtin.lsp_type_definitions, opts)
 		vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, opts)
-		vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+		vim.keymap.set({ "n", "v" }, "K", vim.lsp.buf.hover, {})
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
@@ -395,4 +406,4 @@ vim.api.nvim_create_autocmd("LspAttach", {
 vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
 vim.api.nvim_set_hl(0, "LineNr", { bg = "NONE", fg = "#657B83" })
 vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE" })
-vim.api.nvim_set_hl(0, "Visual", { bg = "#d3c6aa", fg = "NONE" })
+vim.api.nvim_set_hl(0, "Visual", { bg = "#ebe0ca", fg = "NONE" })
