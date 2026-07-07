@@ -6,7 +6,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	if vim.v.shell_error ~= 0 then
 		vim.api.nvim_echo({
 			{ "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-			{ out,                            "WarningMsg" },
+			{ out, "WarningMsg" },
 			{ "\nPress any key to exit..." },
 		}, true, {})
 		vim.fn.getchar()
@@ -28,6 +28,7 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
 	"dstein64/nvim-scrollview",
+	"overcache/NeoSolarized",
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -46,16 +47,6 @@ require("lazy").setup({
 		opts_extend = { "sources.default" },
 	},
 	{
-		"overcache/NeoSolarized",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			vim.cmd("let g:neosolarized_contrast = 'high'")
-			vim.cmd("let g:neosolarized_bold = 0")
-			vim.cmd.colorscheme("NeoSolarized")
-		end,
-	},
-	{
 		"nvim-treesitter/nvim-treesitter",
 		lazy = false,
 		build = ":TSUpdate",
@@ -64,9 +55,13 @@ require("lazy").setup({
 				callback = function(args)
 					local treesitter = require("nvim-treesitter")
 					local lang = vim.treesitter.language.get_lang(args.match)
-					if not lang then return end
+					if not lang then
+						return
+					end
 					local available = treesitter.get_available()
-					if not vim.tbl_contains(available, lang) then return end
+					if not vim.tbl_contains(available, lang) then
+						return
+					end
 					local installed = treesitter.get_installed()
 					if not vim.tbl_contains(installed, lang) then
 						treesitter.install(lang):wait()
@@ -85,7 +80,7 @@ local nvim_web_devicons = require("nvim-web-devicons")
 local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
-local scrollview = require('scrollview')
+local scrollview = require("scrollview")
 
 scrollview.setup()
 
@@ -321,16 +316,18 @@ vim.keymap.set("n", "<C-p>", function()
 
 	local conf = require("telescope.config").values
 
-	require("telescope.pickers").new({}, {
-		prompt_title = "Files",
-		cwd = git_root,
-		finder = require("telescope.finders").new_table({
-			results = files,
-			entry_maker = require("telescope.make_entry").gen_from_file({ cwd = git_root }),
-		}),
-		sorter = conf.file_sorter({}),
-		previewer = conf.file_previewer({ cwd = git_root }),
-	}):find()
+	require("telescope.pickers")
+		.new({}, {
+			prompt_title = "Files",
+			cwd = git_root,
+			finder = require("telescope.finders").new_table({
+				results = files,
+				entry_maker = require("telescope.make_entry").gen_from_file({ cwd = git_root }),
+			}),
+			sorter = conf.file_sorter({}),
+			previewer = conf.file_previewer({ cwd = git_root }),
+		})
+		:find()
 end)
 
 vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
@@ -384,12 +381,12 @@ vim.lsp.config.lua_ls = {
 }
 vim.lsp.enable("lua_ls")
 
-vim.lsp.config('clangd', {
-	cmd = { 'clangd', '--background-index', '--clang-tidy' },
-	filetypes = { 'c', 'h', 'cpp', 'hpp' },
+vim.lsp.config("clangd", {
+	cmd = { "clangd", "--background-index", "--clang-tidy" },
+	filetypes = { "c", "h", "cpp", "hpp" },
 })
 
-vim.lsp.enable('clangd')
+vim.lsp.enable("clangd")
 vim.lsp.enable("tsgo")
 
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -424,6 +421,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
+vim.cmd.colorscheme("NeoSolarized")
+vim.api.nvim_set_hl(0, "@string", { fg = "#2aa198" })
 vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
 vim.api.nvim_set_hl(0, "LineNr", { bg = "NONE", fg = "#657B83" })
 vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE" })
