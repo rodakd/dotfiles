@@ -387,7 +387,24 @@ vim.lsp.config("clangd", {
 })
 
 vim.lsp.enable("clangd")
-vim.lsp.enable("tsgo")
+
+vim.lsp.config.vtsls = {
+	settings = {
+		typescript = {
+			tsserver = {
+				maxTsServerMemory = 6144,
+			},
+		},
+		vtsls = {
+			autoUseWorkspaceTsdk = true,
+			typescript = {
+				globalTsdk = "",
+			},
+		},
+	},
+}
+
+vim.lsp.enable("vtsls")
 
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
