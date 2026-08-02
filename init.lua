@@ -178,7 +178,6 @@ vim.opt.hlsearch = false
 vim.opt.incsearch = true
 vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.cursorline = true
-vim.opt.scrolloff = 8
 vim.o.updatetime = 300
 vim.o.winborder = "rounded"
 vim.opt.isfname:append("@-@")
@@ -406,7 +405,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
-		vim.keymap.set("n", "gR", function()
+		for _, k in ipairs({ "grr", "grn", "gri", "grt", "grx" }) do
+			pcall(vim.keymap.del, "n", k)
+		end
+
+		pcall(vim.keymap.del, { "n", "x" }, "gra")
+
+		vim.keymap.set("n", "gr", function()
 			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
 		end, opts)
 
@@ -424,5 +429,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
+require("gruvbox").setup({
+	overrides = {
+		Visual = { bg = "#ebdbb2", reverse = false },
+	},
+})
+
 vim.o.background = "light"
-vim.cmd([[colorscheme gruvbox]])
+vim.cmd.colorscheme("gruvbox")
