@@ -28,7 +28,8 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
 	"dstein64/nvim-scrollview",
-	"overcache/NeoSolarized",
+	"nvim-treesitter/nvim-treesitter-context",
+	{ "ellisonleao/gruvbox.nvim", priority = 1000, config = true, opts = ... },
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -81,7 +82,9 @@ local oil = require("oil")
 local spectre = require("spectre")
 local conform = require("conform")
 local scrollview = require("scrollview")
+local treesitter_context = require("treesitter-context")
 
+treesitter_context.setup()
 scrollview.setup()
 
 conform.setup({
@@ -421,9 +424,5 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-vim.cmd.colorscheme("NeoSolarized")
-vim.api.nvim_set_hl(0, "@string", { fg = "#2aa198" })
-vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-vim.api.nvim_set_hl(0, "LineNr", { bg = "NONE", fg = "#657B83" })
-vim.api.nvim_set_hl(0, "FoldColumn", { bg = "NONE" })
-vim.api.nvim_set_hl(0, "Visual", { bg = "#ebe0ca", fg = "NONE" })
+vim.o.background = "light"
+vim.cmd([[colorscheme gruvbox]])
