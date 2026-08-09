@@ -28,6 +28,7 @@ require("lazy").setup({
 	"nvim-pack/nvim-spectre",
 	"stevearc/conform.nvim",
 	"dstein64/nvim-scrollview",
+	"MeanderingProgrammer/render-markdown.nvim",
 	"nvim-treesitter/nvim-treesitter-context",
 	{ "ellisonleao/gruvbox.nvim", priority = 1000, config = true, opts = ... },
 	{
