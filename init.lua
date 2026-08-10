@@ -30,7 +30,7 @@ require("lazy").setup({
 	"dstein64/nvim-scrollview",
 	"MeanderingProgrammer/render-markdown.nvim",
 	"nvim-treesitter/nvim-treesitter-context",
-	{ "ellisonleao/gruvbox.nvim", priority = 1000, config = true, opts = ... },
+	{ "projekt0n/github-nvim-theme", name = "github-theme" },
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -85,7 +85,10 @@ local conform = require("conform")
 local scrollview = require("scrollview")
 local treesitter_context = require("treesitter-context")
 
-treesitter_context.setup()
+treesitter_context.setup({
+	max_lines = 1,
+})
+
 scrollview.setup()
 
 conform.setup({
@@ -430,11 +433,5 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-require("gruvbox").setup({
-	overrides = {
-		Visual = { bg = "#ebdbb2", reverse = false },
-	},
-})
-
 vim.o.background = "light"
-vim.cmd.colorscheme("gruvbox")
+vim.cmd.colorscheme("github_light_default")

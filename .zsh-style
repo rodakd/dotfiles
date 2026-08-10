@@ -1,12 +1,12 @@
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
 source $ZSH/oh-my-zsh.sh
-export PROMPT='%{$fg_bold[blue]%}%~%{$reset_color%} '
+export PROMPT='%{$fg_bold[magenta]%}%~%{$reset_color%} '
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
-  --color=fg:#657b83,fg+:#586e75,bg:-1,bg+:#eee8d5
-  --color=hl:#268bd2,hl+:#2aa198,info:#268bd2,marker:#859900
-  --color=prompt:#d33682,spinner:#6c71c4,pointer:#6c71c4,header:#2aa198
-  --color=border:#93a1a1,label:#839496,query:#586e75
+  --color=fg:#24292f,fg+:#24292f,bg:-1,bg+:#f6f8fa
+  --color=hl:#0969da,hl+:#0550ae,info:#57606a,marker:#1a7f37
+  --color=prompt:#8250df,spinner:#bf3989,pointer:#8250df,header:#0969da
+  --color=border:#d0d7de,label:#57606a,query:#24292f
   --prompt="" --marker="" --pointer=""
   --with-nth 2..
   --layout="reverse"'

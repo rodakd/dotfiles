@@ -1,6 +1,6 @@
 [general]
 import = [
-    "~/.config/alacritty/themes/gruvbox_light.toml"
+    "~/.config/alacritty/themes/github_light.toml"
 ]
 
 [env]
