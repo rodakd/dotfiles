@@ -395,6 +395,25 @@ vim.lsp.config("clangd", {
 vim.lsp.enable("clangd")
 vim.lsp.enable("tsgo")
 
+local function grep_current_file()
+	local file = vim.api.nvim_buf_get_name(0)
+
+	if file == "" then
+		return
+	end
+
+	require("telescope.builtin").grep_string({
+		search = vim.fn.expand("<cword>"),
+		search_dirs = { file },
+		additional_args = function()
+			return {
+				"--word-regexp",
+				"--fixed-strings",
+			}
+		end,
+	})
+end
+
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 
@@ -418,6 +437,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set("n", "gr", function()
 			telescope_builtin.lsp_references({ trim_text = true, show_line = false, buffer = ev.buf })
 		end, opts)
+
+		vim.keymap.set("n", "gR", grep_current_file, opts)
 
 		vim.keymap.set({ "n", "v" }, "L", function()
 			vim.diagnostic.open_float(0, { scope = "line" })
