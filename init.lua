@@ -20,17 +20,67 @@ vim.g.maplocalleader = "\\"
 
 require("lazy").setup({
 	"tpope/vim-sleuth",
-	"neovim/nvim-lspconfig",
+	"nordtheme/vim",
 	"nvim-lua/plenary.nvim",
 	"nvim-telescope/telescope.nvim",
-	"nvim-tree/nvim-web-devicons",
-	"stevearc/oil.nvim",
-	"nvim-pack/nvim-spectre",
-	"stevearc/conform.nvim",
-	"dstein64/nvim-scrollview",
-	"MeanderingProgrammer/render-markdown.nvim",
-	"nvim-treesitter/nvim-treesitter-context",
-	{ "projekt0n/github-nvim-theme", name = "github-theme" },
+	{
+		"neovim/nvim-lspconfig",
+		commit = "43ed3797b266e1ee8d222e491379ad471c9d3146",
+	},
+	{ "dstein64/nvim-scrollview", opts = {} },
+	{ "nvim-tree/nvim-web-devicons", opts = {} },
+	{
+		"stevearc/oil.nvim",
+		opts = {
+			keymaps = {
+				["<C-p>"] = false,
+				["<C-s>"] = false,
+			},
+
+			view_options = {
+				show_hidden = true,
+			},
+
+			skip_confirm_for_simple_edits = true,
+		},
+	},
+	{
+		"nvim-pack/nvim-spectre",
+		opts = {
+			replace_engine = {
+				["sed"] = {
+					cmd = "sed",
+					args = {
+						"-i",
+						"",
+						"-E",
+					},
+				},
+			},
+		},
+	},
+	{
+		"stevearc/conform.nvim",
+		opts = {
+			notify_on_error = false,
+
+			format_on_save = {
+				lsp_format = "fallback",
+			},
+
+			formatters_by_ft = {
+				lua = { "stylua" },
+				javascript = { "prettierd" },
+				json = { "prettierd" },
+				css = { "prettierd" },
+				scss = { "prettierd" },
+				javascriptreact = { "prettierd" },
+				typescript = { "prettierd" },
+				typescriptreact = { "prettierd" },
+				c = { "clang-format" },
+			},
+		},
+	},
 	{
 		"saghen/blink.cmp",
 		version = "1.*",
@@ -38,6 +88,9 @@ require("lazy").setup({
 		opts = {
 			keymap = { preset = "enter", ["<C-e>"] = { "show", "show_documentation", "hide_documentation" } },
 			completion = {
+				menu = {
+					auto_show = false,
+				},
 				list = {
 					selection = {
 						preselect = false,
@@ -48,96 +101,11 @@ require("lazy").setup({
 
 		opts_extend = { "sources.default" },
 	},
-	{
-		"nvim-treesitter/nvim-treesitter",
-		lazy = false,
-		build = ":TSUpdate",
-		config = function()
-			vim.api.nvim_create_autocmd("FileType", {
-				callback = function(args)
-					local treesitter = require("nvim-treesitter")
-					local lang = vim.treesitter.language.get_lang(args.match)
-					if not lang then
-						return
-					end
-					local available = treesitter.get_available()
-					if not vim.tbl_contains(available, lang) then
-						return
-					end
-					local installed = treesitter.get_installed()
-					if not vim.tbl_contains(installed, lang) then
-						treesitter.install(lang):wait()
-					end
-					vim.treesitter.start()
-				end,
-			})
-		end,
-	},
 })
 
 local telescope = require("telescope")
 local telescope_actions = require("telescope.actions")
 local telescope_builtin = require("telescope.builtin")
-local nvim_web_devicons = require("nvim-web-devicons")
-local oil = require("oil")
-local spectre = require("spectre")
-local conform = require("conform")
-local scrollview = require("scrollview")
-local treesitter_context = require("treesitter-context")
-
-treesitter_context.setup({
-	max_lines = 1,
-})
-
-scrollview.setup()
-
-conform.setup({
-	notify_on_error = false,
-
-	format_on_save = {
-		lsp_format = "fallback",
-	},
-
-	formatters_by_ft = {
-		lua = { "stylua" },
-		javascript = { "prettierd" },
-		json = { "prettierd" },
-		css = { "prettierd" },
-		scss = { "prettierd" },
-		javascriptreact = { "prettierd" },
-		typescript = { "prettierd" },
-		typescriptreact = { "prettierd" },
-		c = { "clang-format" },
-	},
-})
-
-spectre.setup({
-	replace_engine = {
-		["sed"] = {
-			cmd = "sed",
-			args = {
-				"-i",
-				"",
-				"-E",
-			},
-		},
-	},
-})
-
-oil.setup({
-	keymaps = {
-		["<C-p>"] = false,
-		["<C-s>"] = false,
-	},
-
-	view_options = {
-		show_hidden = true,
-	},
-
-	skip_confirm_for_simple_edits = true,
-})
-
-nvim_web_devicons.setup()
 
 telescope.setup({
 	defaults = {
@@ -195,7 +163,6 @@ vim.opt.autoread = true
 vim.opt.showmode = false
 vim.opt.laststatus = 0
 vim.o.termguicolors = true
-vim.o.background = "light"
 
 vim.api.nvim_create_autocmd(
 	{ "FileChangedShellPost" },
@@ -454,5 +421,4 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-vim.o.background = "light"
-vim.cmd.colorscheme("github_light_default")
+vim.cmd([[colorscheme nord]])
