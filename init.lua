@@ -30,6 +30,188 @@ require("lazy").setup({
 	{ "dstein64/nvim-scrollview", opts = {} },
 	{ "nvim-tree/nvim-web-devicons", opts = {} },
 	{
+		"axkirillov/unified.nvim",
+		opts = {
+			-- Dedicated muted groups instead of the bright Diff{Add,Delete,Change}
+			highlights = {
+				add = "UnifiedMutedAdd",
+				delete = "UnifiedMutedDelete",
+				change = "UnifiedMutedChange",
+			},
+		},
+		config = function(_, opts)
+			require("unified").setup(opts)
+
+			-- Muted Nord-tinted hunk colors: subtle backgrounds, soft foregrounds.
+			local function muted_hunk_colors()
+				vim.api.nvim_set_hl(0, "UnifiedMutedAdd", { bg = "#2F4034", fg = "#A3BE8C" })
+				vim.api.nvim_set_hl(0, "UnifiedMutedDelete", { bg = "#3F343A", fg = "#BF616A" })
+				vim.api.nvim_set_hl(0, "UnifiedMutedChange", { bg = "#3E4A5E", fg = "#81A1C1" })
+				-- Nord's DiffChange is yellow (nord13 #EBCB8B), which shows up in
+				-- unified.nvim's file tree (modified files) and diffs. Replace it
+				-- with a muted blue.
+				vim.api.nvim_set_hl(0, "DiffChange", { bg = "#3E4A5E", fg = "#81A1C1" })
+			end
+			muted_hunk_colors()
+			vim.api.nvim_create_autocmd("ColorScheme", {
+				group = vim.api.nvim_create_augroup("UnifiedMutedColors", { clear = true }),
+				callback = muted_hunk_colors,
+			})
+
+			-- Jump focus to the diff buffer when a file is selected in the tree
+			-- (the plugin keeps focus in the tree by default). The tree's keymaps
+			-- look these up via require at keypress time, so wrapping works.
+			local actions = require("unified.file_tree.actions")
+			local function focus_main_window()
+				local win = require("unified.state").get_main_window()
+				if win and vim.api.nvim_win_is_valid(win) then
+					vim.api.nvim_set_current_win(win)
+				end
+			end
+			for _, name in ipairs({ "toggle_node", "move_cursor_and_open_file" }) do
+				local orig = actions[name]
+				if orig then
+					actions[name] = function(...)
+						orig(...)
+						focus_main_window()
+					end
+				end
+			end
+
+			-- The plugin hardcodes a 300ms auto-refresh debounce with no config
+			-- option; re-register its autocmds with a faster one.
+			local DEBOUNCE_MS = 50
+			local auto_refresh = require("unified.auto_refresh")
+			local orig_ar_setup = auto_refresh.setup
+			auto_refresh.setup = function(buffer)
+				orig_ar_setup(buffer)
+				pcall(vim.api.nvim_clear_autocmds, { group = "UnifiedDiffAutoRefresh", buffer = buffer })
+				local state = require("unified.state")
+				local diff = require("unified.diff")
+				local async = require("unified.utils.async")
+				local debounced = async.debounce(function()
+					if not state.is_active() then
+						return
+					end
+					local ok, commit = pcall(state.get_commit_base)
+					if not ok then
+						return
+					end
+					async.run(function()
+						require("unified.git").show_git_diff_against_commit(commit, buffer)
+					end)
+				end, DEBOUNCE_MS)
+				vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave", "FileChangedShell" }, {
+					group = vim.api.nvim_create_augroup("UnifiedDiffAutoRefresh", { clear = false }),
+					buffer = buffer,
+					callback = function()
+						if diff.is_diff_displayed(buffer) then
+							debounced()
+						end
+					end,
+				})
+			end
+
+			-- Show added/deleted lines in the scrollview column while a
+			-- unified diff is active.
+			local scrollview = require("scrollview")
+			local add_group = "unified_add"
+			local del_group = "unified_del"
+			scrollview.register_sign_group(add_group)
+			scrollview.register_sign_group(del_group)
+
+			local add_reg = scrollview.register_sign_spec({ group = add_group, highlight = "UnifiedMutedAdd" })
+			local del_reg = scrollview.register_sign_spec({ group = del_group, highlight = "UnifiedMutedDelete" })
+			scrollview.set_sign_group_state(add_group, true)
+			scrollview.set_sign_group_state(del_group, true)
+
+			local cache = {}
+
+			local function update_diff_signs(bufnr)
+				local fname = vim.api.nvim_buf_get_name(bufnr)
+				if fname == "" then
+					return
+				end
+				local state = require("unified.state")
+				local ok, base = pcall(state.get_commit_base)
+				local key = tostring(bufnr)
+					.. ":"
+					.. tostring(ok and base or "inactive")
+					.. ":"
+					.. tostring(vim.b[bufnr].changedtick or 0)
+				if cache[key] then
+					return
+				end
+				cache = { [key] = true }
+
+				local adds, dels = {}, {}
+				if ok and state.is_active() then
+					local out = vim.fn.systemlist({ "git", "diff", base, "--", fname })
+					if vim.v.shell_error == 0 then
+						local line = 0
+						for _, l in ipairs(out) do
+							-- Skip "+++ b/..." and "--- a/..." file headers
+							if l:sub(1, 3) == "+++" or l:sub(1, 3) == "---" then
+								goto continue
+							end
+							local c = l:sub(1, 1)
+							if c == "@" then
+								local start = tonumber(l:match("%+(%d+)"))
+								if start then
+									line = start - 1
+								end
+							elseif c == "+" then
+								line = line + 1
+								table.insert(adds, line)
+							elseif c == "-" then
+								-- Deleted lines have no position in the new
+								-- file; anchor them to the nearest line.
+								table.insert(dels, math.max(1, line))
+							elseif c == " " then
+								line = line + 1
+							end
+							::continue::
+						end
+					end
+				end
+				vim.b[bufnr][add_reg.name] = adds
+				vim.b[bufnr][del_reg.name] = dels
+			end
+
+			local function refresh_signs()
+				if scrollview.is_sign_group_active(add_group) then
+					vim.cmd("ScrollViewRefresh")
+				end
+			end
+
+			scrollview.set_sign_group_callback(add_group, function()
+				for _, winid in ipairs(scrollview.get_sign_eligible_windows()) do
+					update_diff_signs(vim.api.nvim_win_get_buf(winid))
+				end
+			end)
+			scrollview.set_sign_group_callback(del_group, function()
+				for _, winid in ipairs(scrollview.get_sign_eligible_windows()) do
+					update_diff_signs(vim.api.nvim_win_get_buf(winid))
+				end
+			end)
+
+			local group = vim.api.nvim_create_augroup("UnifiedScrollViewSigns", { clear = true })
+			vim.api.nvim_create_autocmd("User", {
+				group = group,
+				pattern = "UnifiedBaseCommitUpdated",
+				callback = refresh_signs,
+			})
+			vim.api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost", "TextChanged" }, {
+				group = group,
+				callback = function()
+					if require("unified.state").is_active() then
+						refresh_signs()
+					end
+				end,
+			})
+		end,
+	},
+	{
 		"stevearc/oil.nvim",
 		opts = {
 			keymaps = {
@@ -70,13 +252,14 @@ require("lazy").setup({
 
 			formatters_by_ft = {
 				lua = { "stylua" },
-				javascript = { "prettierd" },
+				javascript = { "oxfmt", "prettierd" },
 				json = { "prettierd" },
-				css = { "prettierd" },
-				scss = { "prettierd" },
-				javascriptreact = { "prettierd" },
-				typescript = { "prettierd" },
-				typescriptreact = { "prettierd" },
+				css = { "oxfmt", "prettierd" },
+				scss = { "oxfmt", "prettierd" },
+				javascriptreact = { "oxfmt", "prettierd" },
+				typescript = { "oxfmt", "prettierd" },
+				typescriptreact = { "oxfmt", "prettierd" },
+				html = { "oxfmt", "prettierd" },
 				c = { "clang-format" },
 			},
 		},
@@ -313,6 +496,27 @@ vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
 
 vim.keymap.set("n", "<leader>Y", function()
 	vim.cmd(':let @+ = expand("%:p")')
+end, {})
+
+vim.keymap.set("n", "<leader>d", function()
+	local state = require("unified.state")
+
+	if state.is_active() then
+		require("unified.command").reset()
+		vim.cmd("ScrollViewRefresh")
+		return
+	end
+
+	local branch = vim.trim(vim.fn.input("Diff against branch: "))
+
+	if branch ~= "" then
+		local merge_base = vim.trim(vim.fn.system({ "git", "merge-base", branch, "HEAD" }))
+		if vim.v.shell_error ~= 0 or merge_base == "" then
+			vim.notify("merge-base failed for " .. branch, vim.log.levels.ERROR)
+			return
+		end
+		require("unified.command").run(merge_base)
+	end
 end, {})
 
 vim.keymap.set("n", "<leader>b", function()
