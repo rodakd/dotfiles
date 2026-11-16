@@ -32,24 +32,22 @@ require("lazy").setup({
 	{
 		"axkirillov/unified.nvim",
 		opts = {
-			-- Dedicated muted groups instead of the bright Diff{Add,Delete,Change}
 			highlights = {
 				add = "UnifiedMutedAdd",
 				delete = "UnifiedMutedDelete",
 				change = "UnifiedMutedChange",
 			},
+			file_tree = {
+				width = 40,
+			},
 		},
 		config = function(_, opts)
 			require("unified").setup(opts)
 
-			-- Muted Nord-tinted hunk colors: subtle backgrounds, soft foregrounds.
 			local function muted_hunk_colors()
 				vim.api.nvim_set_hl(0, "UnifiedMutedAdd", { bg = "#2F4034", fg = "#A3BE8C" })
 				vim.api.nvim_set_hl(0, "UnifiedMutedDelete", { bg = "#3F343A", fg = "#BF616A" })
 				vim.api.nvim_set_hl(0, "UnifiedMutedChange", { bg = "#3E4A5E", fg = "#81A1C1" })
-				-- Nord's DiffChange is yellow (nord13 #EBCB8B), which shows up in
-				-- unified.nvim's file tree (modified files) and diffs. Replace it
-				-- with a muted blue.
 				vim.api.nvim_set_hl(0, "DiffChange", { bg = "#3E4A5E", fg = "#81A1C1" })
 			end
 			muted_hunk_colors()
@@ -58,9 +56,6 @@ require("lazy").setup({
 				callback = muted_hunk_colors,
 			})
 
-			-- Jump focus to the diff buffer when a file is selected in the tree
-			-- (the plugin keeps focus in the tree by default). The tree's keymaps
-			-- look these up via require at keypress time, so wrapping works.
 			local actions = require("unified.file_tree.actions")
 			local function focus_main_window()
 				local win = require("unified.state").get_main_window()
@@ -78,9 +73,36 @@ require("lazy").setup({
 				end
 			end
 
-			-- The plugin hardcodes a 300ms auto-refresh debounce with no config
-			-- option; re-register its autocmds with a faster one.
+			vim.api.nvim_create_autocmd("FileType", {
+				group = vim.api.nvim_create_augroup("UnifiedTreeEnter", { clear = true }),
+				pattern = "unified_tree",
+				callback = function(args)
+					vim.keymap.set("n", "<CR>", function()
+						require("unified.file_tree.actions").toggle_node()
+					end, { buffer = args.buf, noremap = true, silent = true, desc = "Unified: open file" })
+				end,
+			})
+
 			local DEBOUNCE_MS = 50
+			local function debounce(fn, delay_ms)
+				local timer
+				return function(...)
+					local args = { ... }
+					if timer then
+						vim.uv.timer_stop(timer)
+						timer = nil
+					end
+					timer = vim.uv.new_timer()
+					timer:start(delay_ms, 0, function()
+						vim.uv.timer_stop(timer)
+						timer:close()
+						timer = nil
+						vim.schedule(function()
+							fn(unpack(args))
+						end)
+					end)
+				end
+			end
 			local auto_refresh = require("unified.auto_refresh")
 			local orig_ar_setup = auto_refresh.setup
 			auto_refresh.setup = function(buffer)
@@ -88,8 +110,7 @@ require("lazy").setup({
 				pcall(vim.api.nvim_clear_autocmds, { group = "UnifiedDiffAutoRefresh", buffer = buffer })
 				local state = require("unified.state")
 				local diff = require("unified.diff")
-				local async = require("unified.utils.async")
-				local debounced = async.debounce(function()
+				local debounced = debounce(function()
 					if not state.is_active() then
 						return
 					end
@@ -97,7 +118,7 @@ require("lazy").setup({
 					if not ok then
 						return
 					end
-					async.run(function()
+					require("unified.utils.async").run(function()
 						require("unified.git").show_git_diff_against_commit(commit, buffer)
 					end)
 				end, DEBOUNCE_MS)
@@ -112,8 +133,120 @@ require("lazy").setup({
 				})
 			end
 
-			-- Show added/deleted lines in the scrollview column while a
-			-- unified diff is active.
+			vim.keymap.set("n", "<leader>hr", function()
+				local state = require("unified.state")
+				local ok_base, base = pcall(state.get_commit_base)
+				if not ok_base or not state.is_active() then
+					vim.notify("Unified: no active diff", vim.log.levels.WARN)
+					return
+				end
+
+				local buf = vim.api.nvim_get_current_buf()
+				local abs = vim.api.nvim_buf_get_name(buf)
+				if abs == "" then
+					vim.notify("Unified: buffer has no file path", vim.log.levels.WARN)
+					return
+				end
+
+				local root = vim.trim(vim.fn.system({ "git", "-C", vim.fn.fnamemodify(abs, ":h"), "rev-parse", "--show-toplevel" }))
+				if vim.v.shell_error ~= 0 or root == "" then
+					vim.notify("Unified: not a git repository", vim.log.levels.WARN)
+					return
+				end
+				if abs:sub(1, #root + 1) ~= root .. "/" then
+					vim.notify("Unified: could not compute path relative to repo root", vim.log.levels.WARN)
+					return
+				end
+				local rel = abs:sub(#root + 2)
+
+				local out = vim.fn.system({ "git", "-C", root, "diff", base, "-U3", "--", rel })
+				if vim.v.shell_error ~= 0 then
+					vim.notify("Unified: git diff failed", vim.log.levels.ERROR)
+					return
+				end
+				local lines = vim.split(out, "\n", { plain = true })
+				for _, l in ipairs(lines) do
+					if l:match("^Binary files") or l:match("^GIT binary patch") then
+						vim.notify("Unified: binary patch not supported", vim.log.levels.WARN)
+						return
+					end
+				end
+
+				local headers = {}
+				local selected = nil
+				local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+				local i = 1
+				while i <= #lines and not lines[i]:match("^@@") do
+					table.insert(headers, lines[i])
+					i = i + 1
+				end
+				while i <= #lines and not selected do
+					local header = lines[i]
+					local n_start, n_count = header:match("^@@ %-%d+,?%d* %+(%d+),?(%d*) @@")
+					i = i + 1
+					if n_start then
+						n_start = tonumber(n_start)
+						n_count = (n_count ~= "" and tonumber(n_count)) or 1
+						local hunk_lines = {}
+						while i <= #lines and not lines[i]:match("^@@") do
+							table.insert(hunk_lines, lines[i])
+							i = i + 1
+						end
+						local on_hunk
+						if n_count > 0 then
+							on_hunk = cursor_line >= n_start and cursor_line < n_start + n_count
+						else
+							on_hunk = cursor_line == math.max(1, n_start)
+								or (n_start >= 1 and cursor_line == n_start - 1)
+								or cursor_line == n_start + 1
+						end
+						if on_hunk then
+							selected = { header = header, lines = hunk_lines }
+						end
+					end
+				end
+				if not selected then
+					vim.notify("Unified: no hunk under the cursor", vim.log.levels.WARN)
+					return
+				end
+
+				local patch_lines = {}
+				local has_oldnew = false
+				for _, l in ipairs(headers) do
+					if l:match("^--- ") or l:match("^%+%+%+ ") then
+						has_oldnew = true
+					end
+					table.insert(patch_lines, l)
+				end
+				if not has_oldnew then
+					table.insert(patch_lines, "--- a/" .. rel)
+					table.insert(patch_lines, "+++ b/" .. rel)
+				end
+				table.insert(patch_lines, selected.header)
+				for _, l in ipairs(selected.lines) do
+					table.insert(patch_lines, l)
+				end
+
+				local tmp = vim.fn.tempname()
+				local f = io.open(tmp, "wb")
+				f:write(table.concat(patch_lines, "\n") .. "\n")
+				f:close()
+				local result = vim.fn.system({ "git", "-C", root, "apply", "-R", "--unidiff-zero", "--whitespace=nowarn", tmp })
+				vim.fn.delete(tmp)
+				if vim.v.shell_error ~= 0 then
+					vim.notify("Unified: git apply failed: " .. vim.trim(result), vim.log.levels.ERROR)
+					return
+				end
+
+				pcall(vim.cmd, "checktime")
+				if vim.api.nvim_buf_is_valid(buf) then
+					vim.api.nvim_buf_call(buf, function()
+						vim.cmd("edit!")
+					end)
+				end
+				pcall(require("unified.diff").show_current)
+			end, { desc = "Unified: revert hunk under cursor" })
+
 			local scrollview = require("scrollview")
 			local add_group = "unified_add"
 			local del_group = "unified_del"
@@ -150,7 +283,6 @@ require("lazy").setup({
 					if vim.v.shell_error == 0 then
 						local line = 0
 						for _, l in ipairs(out) do
-							-- Skip "+++ b/..." and "--- a/..." file headers
 							if l:sub(1, 3) == "+++" or l:sub(1, 3) == "---" then
 								goto continue
 							end
@@ -164,8 +296,6 @@ require("lazy").setup({
 								line = line + 1
 								table.insert(adds, line)
 							elseif c == "-" then
-								-- Deleted lines have no position in the new
-								-- file; anchor them to the nearest line.
 								table.insert(dels, math.max(1, line))
 							elseif c == " " then
 								line = line + 1
@@ -252,14 +382,14 @@ require("lazy").setup({
 
 			formatters_by_ft = {
 				lua = { "stylua" },
-				javascript = { "oxfmt", "prettierd" },
+				javascript = { "oxfmt", "prettierd", stop_after_first = true },
 				json = { "prettierd" },
-				css = { "oxfmt", "prettierd" },
-				scss = { "oxfmt", "prettierd" },
-				javascriptreact = { "oxfmt", "prettierd" },
-				typescript = { "oxfmt", "prettierd" },
-				typescriptreact = { "oxfmt", "prettierd" },
-				html = { "oxfmt", "prettierd" },
+				css = { "oxfmt", "prettierd", stop_after_first = true },
+				scss = { "oxfmt", "prettierd", stop_after_first = true },
+				javascriptreact = { "oxfmt", "prettierd", stop_after_first = true },
+				typescript = { "oxfmt", "prettierd", stop_after_first = true },
+				typescriptreact = { "oxfmt", "prettierd", stop_after_first = true },
+				html = { "oxfmt", "prettierd", stop_after_first = true },
 				c = { "clang-format" },
 			},
 		},
@@ -507,9 +637,11 @@ vim.keymap.set("n", "<leader>d", function()
 		return
 	end
 
-	local branch = vim.trim(vim.fn.input("Diff against branch: "))
+	local branch = vim.trim(vim.fn.input("Diff against branch (empty = working copy): "))
 
-	if branch ~= "" then
+	if branch == "" then
+		require("unified.command").run("HEAD")
+	else
 		local merge_base = vim.trim(vim.fn.system({ "git", "merge-base", branch, "HEAD" }))
 		if vim.v.shell_error ~= 0 or merge_base == "" then
 			vim.notify("merge-base failed for " .. branch, vim.log.levels.ERROR)
@@ -626,3 +758,5 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 vim.cmd([[colorscheme nord]])
+
+vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#3B4252", bg = "NONE" })
