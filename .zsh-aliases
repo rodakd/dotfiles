@@ -18,4 +18,5 @@ alias dp1="cd ~/repos/diploma-platform/"
 alias dp2="cd ~/repos/diploma-platform2/"
 alias dp3="cd ~/repos/diploma-platform3/"
 alias ng="cd ~/repos/nextgen/"
+alias dt="cd ~/repos/dotfiles/"
 kns() { kubectl config set-context --current --namespace="$1" }
