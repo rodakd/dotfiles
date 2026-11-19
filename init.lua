@@ -71,9 +71,15 @@ require("lazy").setup({
 		opts = {
 			notify_on_error = false,
 
-			format_on_save = {
-				lsp_format = "fallback",
-			},
+			-- Skipped when vim.g.disable_autoformat / vim.b.disable_autoformat is set
+			-- (see the <leader>W mapping below).
+			format_on_save = function(bufnr)
+				if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+					return
+				end
+
+				return { lsp_format = "fallback" }
+			end,
 
 			formatters_by_ft = {
 				lua = { "stylua" },
@@ -315,6 +321,20 @@ vim.keymap.set("n", "<C-f>", telescope_builtin.live_grep, {})
 vim.keymap.set("n", "<C-y>", telescope_builtin.resume, {})
 vim.keymap.set("n", "<C-b>", telescope_builtin.diagnostics, {})
 vim.keymap.set("n", "<leader>w", vim.cmd.w, {})
+
+-- Write the buffer without running conform's format_on_save.
+vim.keymap.set("n", "<leader>W", function()
+	local was_disabled = vim.b.disable_autoformat
+	vim.b.disable_autoformat = true
+
+	local ok, err = pcall(vim.cmd.write)
+
+	vim.b.disable_autoformat = was_disabled
+
+	if not ok then
+		vim.notify(err, vim.log.levels.ERROR)
+	end
+end, { desc = "Write without formatting" })
 vim.keymap.set("n", "<leader>p", '"+p')
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", {})
